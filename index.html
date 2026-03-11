@@ -1,0 +1,668 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Grand Quest Log</title>
+<link href="https://fonts.googleapis.com/css2?family=MedievalSharp&family=Cinzel:wght@400;600;900&family=IM+Fell+English:ital@0;1&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --parchment: #f4e8c1;
+    --parchment-dark: #e8d5a3;
+    --parchment-shadow: #c9a96e;
+    --ink: #2c1810;
+    --ink-faded: #5c3d2e;
+    --blood-red: #8b1a1a;
+    --gold: #c9942a;
+    --gold-bright: #e8b84b;
+    --aged-green: #4a5e3a;
+    --vellum: #ede0b8;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    min-height: 100vh;
+    background: #1a0f08;
+    background-image:
+      radial-gradient(ellipse at 20% 20%, #2d1a0e 0%, transparent 60%),
+      radial-gradient(ellipse at 80% 80%, #1f1208 0%, transparent 60%),
+      url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='400'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='400' height='400' filter='url(%23noise)' opacity='0.08'/%3E%3C/svg%3E");
+    font-family: 'IM Fell English', serif;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 40px 20px 60px;
+  }
+
+  /* Decorative top emblem */
+  .emblem {
+    font-size: 2.5rem;
+    margin-bottom: -10px;
+    filter: drop-shadow(0 0 12px rgba(201,148,42,0.6));
+    animation: glow-pulse 3s ease-in-out infinite;
+  }
+
+  @keyframes glow-pulse {
+    0%, 100% { filter: drop-shadow(0 0 8px rgba(201,148,42,0.5)); }
+    50% { filter: drop-shadow(0 0 20px rgba(232,184,75,0.9)); }
+  }
+
+  h1 {
+    font-family: 'Cinzel', serif;
+    font-weight: 900;
+    font-size: clamp(2rem, 5vw, 3.2rem);
+    color: var(--gold-bright);
+    text-align: center;
+    text-shadow:
+      0 0 30px rgba(201,148,42,0.8),
+      0 2px 4px rgba(0,0,0,0.8),
+      0 0 60px rgba(201,148,42,0.3);
+    letter-spacing: 0.08em;
+    margin-bottom: 6px;
+  }
+
+  .subtitle {
+    font-family: 'IM Fell English', serif;
+    font-style: italic;
+    color: #a07840;
+    font-size: 1rem;
+    text-align: center;
+    margin-bottom: 36px;
+    letter-spacing: 0.05em;
+  }
+
+  /* Main parchment container */
+  .scroll {
+    width: 100%;
+    max-width: 740px;
+    background: var(--parchment);
+    background-image:
+      url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='paper'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.04' numOctaves='5' result='noise'/%3E%3CfeDiffuseLighting in='noise' lighting-color='%23f4e8c1' surfaceScale='2'%3E%3CfeDistantLight azimuth='45' elevation='60'/%3E%3C/feDiffuseLighting%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23paper)' opacity='0.4'/%3E%3C/svg%3E"),
+      linear-gradient(160deg, #f8efd4 0%, #f0e0b0 40%, #e8d490 100%);
+    border-radius: 4px;
+    box-shadow:
+      0 0 0 2px var(--parchment-shadow),
+      0 0 0 4px #8b6914,
+      0 0 0 6px #5c4510,
+      inset 0 0 80px rgba(160,100,30,0.15),
+      0 20px 60px rgba(0,0,0,0.7),
+      0 40px 100px rgba(0,0,0,0.4);
+    padding: 48px 52px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  /* Scroll top/bottom curl effect */
+  .scroll::before, .scroll::after {
+    content: '';
+    position: absolute;
+    left: -6px; right: -6px;
+    height: 28px;
+    background: linear-gradient(to bottom, #8b6914, #c9942a, #8b6914);
+    border-radius: 4px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+    z-index: 10;
+  }
+  .scroll::before { top: -4px; }
+  .scroll::after { bottom: -4px; }
+
+  /* Corner ornaments */
+  .corner {
+    position: absolute;
+    font-size: 1.8rem;
+    color: var(--gold);
+    opacity: 0.6;
+    z-index: 5;
+  }
+  .corner.tl { top: 18px; left: 18px; }
+  .corner.tr { top: 18px; right: 18px; transform: scaleX(-1); }
+  .corner.bl { bottom: 18px; left: 18px; transform: scaleY(-1); }
+  .corner.br { bottom: 18px; right: 18px; transform: scale(-1); }
+
+  /* Divider */
+  .divider {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin: 20px 0 28px;
+    color: var(--gold);
+  }
+  .divider::before, .divider::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: linear-gradient(to right, transparent, var(--parchment-shadow), transparent);
+  }
+  .divider-icon { font-size: 1.1rem; opacity: 0.7; }
+
+  /* Input area */
+  .input-section {
+    margin-bottom: 32px;
+  }
+
+  .input-label {
+    font-family: 'Cinzel', serif;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--ink-faded);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    display: block;
+    margin-bottom: 10px;
+  }
+
+  .task-input-wrap {
+    display: flex;
+    gap: 10px;
+    align-items: stretch;
+  }
+
+  #taskInput {
+    flex: 1;
+    background: rgba(255,255,255,0.3);
+    border: 1.5px solid var(--parchment-shadow);
+    border-radius: 2px;
+    padding: 12px 16px;
+    font-family: 'IM Fell English', serif;
+    font-size: 1rem;
+    color: var(--ink);
+    outline: none;
+    transition: border-color 0.2s, box-shadow 0.2s;
+    box-shadow: inset 0 2px 6px rgba(0,0,0,0.08);
+  }
+
+  #taskInput::placeholder {
+    color: var(--parchment-shadow);
+    font-style: italic;
+  }
+
+  #taskInput:focus {
+    border-color: var(--gold);
+    box-shadow: inset 0 2px 6px rgba(0,0,0,0.08), 0 0 0 2px rgba(201,148,42,0.2);
+  }
+
+  .add-btn {
+    background: linear-gradient(135deg, #8b1a1a 0%, #5c0f0f 100%);
+    border: 1.5px solid #6b1515;
+    color: var(--gold-bright);
+    font-family: 'Cinzel', serif;
+    font-size: 0.72rem;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    padding: 0 20px;
+    cursor: pointer;
+    border-radius: 2px;
+    transition: all 0.2s;
+    box-shadow: 0 3px 8px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.1);
+    white-space: nowrap;
+    text-transform: uppercase;
+  }
+
+  .add-btn:hover {
+    background: linear-gradient(135deg, #a51f1f 0%, #7a1414 100%);
+    box-shadow: 0 4px 12px rgba(139,26,26,0.4), inset 0 1px 0 rgba(255,255,255,0.15);
+    transform: translateY(-1px);
+  }
+
+  .add-btn:active { transform: translateY(0); }
+  .add-btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+
+  /* Quest list */
+  .quest-section-title {
+    font-family: 'Cinzel', serif;
+    font-size: 0.72rem;
+    font-weight: 600;
+    color: var(--ink-faded);
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    margin-bottom: 14px;
+  }
+
+  .quest-list {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    min-height: 60px;
+  }
+
+  .quest-item {
+    background: rgba(255,255,255,0.2);
+    border: 1px solid rgba(160,100,30,0.25);
+    border-radius: 2px;
+    padding: 14px 16px 14px 48px;
+    position: relative;
+    transition: all 0.3s ease;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.07);
+    animation: slide-in 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+
+  @keyframes slide-in {
+    from { opacity: 0; transform: translateX(-20px); }
+    to { opacity: 1; transform: translateX(0); }
+  }
+
+  .quest-item:hover {
+    background: rgba(255,255,255,0.35);
+    border-color: rgba(160,100,30,0.45);
+    box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+  }
+
+  .quest-item.completed {
+    background: rgba(74,94,58,0.12);
+    border-color: rgba(74,94,58,0.3);
+  }
+
+  /* Checkbox styled as wax seal */
+  .quest-check {
+    position: absolute;
+    left: 14px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 22px;
+    height: 22px;
+    cursor: pointer;
+    appearance: none;
+    background: var(--parchment-dark);
+    border: 1.5px solid var(--parchment-shadow);
+    border-radius: 50%;
+    transition: all 0.2s;
+    flex-shrink: 0;
+  }
+
+  .quest-check:hover {
+    border-color: var(--aged-green);
+    background: rgba(74,94,58,0.15);
+  }
+
+  .quest-check:checked {
+    background: var(--aged-green);
+    border-color: #2e3d22;
+  }
+
+  .quest-check:checked::after {
+    content: '✓';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    color: #c8dba0;
+    font-size: 13px;
+    font-weight: bold;
+  }
+
+  .quest-content { }
+
+  .quest-original {
+    font-family: 'IM Fell English', serif;
+    font-size: 0.78rem;
+    color: var(--ink-faded);
+    font-style: italic;
+    margin-bottom: 4px;
+    opacity: 0.7;
+  }
+
+  .quest-original::before { content: '⚙ '; font-style: normal; font-size: 0.7rem; }
+
+  .quest-transformed {
+    font-family: 'IM Fell English', serif;
+    font-size: 1rem;
+    color: var(--ink);
+    line-height: 1.45;
+  }
+
+  .quest-item.completed .quest-transformed {
+    color: var(--ink-faded);
+    text-decoration: line-through;
+    opacity: 0.6;
+  }
+
+  .quest-meta {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-top: 6px;
+  }
+
+  .quest-rank {
+    font-family: 'Cinzel', serif;
+    font-size: 0.62rem;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    padding: 2px 8px;
+    border-radius: 1px;
+    text-transform: uppercase;
+  }
+
+  .rank-common { background: rgba(74,94,58,0.2); color: #4a5e3a; border: 1px solid rgba(74,94,58,0.3); }
+  .rank-uncommon { background: rgba(30,80,150,0.15); color: #1e3a7a; border: 1px solid rgba(30,80,150,0.25); }
+  .rank-rare { background: rgba(100,30,150,0.15); color: #5a1a8a; border: 1px solid rgba(100,30,150,0.25); }
+  .rank-epic { background: rgba(180,100,0,0.15); color: #7a4500; border: 1px solid rgba(180,100,0,0.3); }
+  .rank-legendary { background: rgba(139,26,26,0.15); color: var(--blood-red); border: 1px solid rgba(139,26,26,0.3); }
+
+  .delete-btn {
+    position: absolute;
+    right: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    color: var(--parchment-shadow);
+    cursor: pointer;
+    font-size: 0.9rem;
+    opacity: 0;
+    transition: opacity 0.2s, color 0.2s;
+    padding: 4px;
+    line-height: 1;
+  }
+
+  .quest-item:hover .delete-btn { opacity: 1; }
+  .delete-btn:hover { color: var(--blood-red); }
+
+  /* Loading state */
+  .loading-rune {
+    display: inline-block;
+    animation: spin-rune 1s linear infinite;
+    font-size: 1rem;
+  }
+
+  @keyframes spin-rune {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+  }
+
+  /* Empty state */
+  .empty-state {
+    text-align: center;
+    padding: 30px 0;
+    color: var(--ink-faded);
+    font-style: italic;
+    font-size: 0.95rem;
+    opacity: 0.6;
+  }
+
+  .empty-state .empty-icon { font-size: 2rem; display: block; margin-bottom: 8px; }
+
+  /* Completed section */
+  .completed-section { margin-top: 28px; }
+
+  .toggle-completed {
+    background: none;
+    border: none;
+    font-family: 'Cinzel', serif;
+    font-size: 0.72rem;
+    font-weight: 600;
+    color: var(--ink-faded);
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 0;
+    margin-bottom: 14px;
+    opacity: 0.7;
+    transition: opacity 0.2s;
+  }
+  .toggle-completed:hover { opacity: 1; }
+
+  /* Stats bar */
+  .stats-bar {
+    display: flex;
+    gap: 20px;
+    justify-content: center;
+    margin-top: 24px;
+    padding-top: 20px;
+    border-top: 1px solid rgba(160,100,30,0.2);
+  }
+
+  .stat {
+    text-align: center;
+    color: var(--ink-faded);
+  }
+
+  .stat-num {
+    font-family: 'Cinzel', serif;
+    font-size: 1.4rem;
+    font-weight: 900;
+    color: var(--gold);
+    display: block;
+    text-shadow: 0 0 10px rgba(201,148,42,0.3);
+  }
+
+  .stat-label {
+    font-size: 0.68rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    opacity: 0.6;
+  }
+
+  /* Scrollbar styling */
+  ::-webkit-scrollbar { width: 6px; }
+  ::-webkit-scrollbar-track { background: var(--parchment-dark); }
+  ::-webkit-scrollbar-thumb { background: var(--parchment-shadow); border-radius: 3px; }
+
+  @media (max-width: 600px) {
+    .scroll { padding: 36px 24px; }
+    h1 { font-size: 1.8rem; }
+  }
+</style>
+</head>
+<body>
+
+<div class="emblem">⚔️</div>
+<h1>The Grand Quest Log</h1>
+<p class="subtitle">A Chronicle of Deeds Most Heroic & Mundane</p>
+
+<div class="scroll">
+  <div class="corner tl">✦</div>
+  <div class="corner tr">✦</div>
+  <div class="corner bl">✦</div>
+  <div class="corner br">✦</div>
+
+  <div class="input-section">
+    <label class="input-label" for="taskInput">⚔ Declare Thy Task</label>
+    <div class="task-input-wrap">
+      <input type="text" id="taskInput" placeholder="e.g. do the laundry, send that email…" maxlength="200" />
+      <button class="add-btn" id="addBtn" onclick="addQuest()">Inscribe</button>
+    </div>
+  </div>
+
+  <div class="divider"><span class="divider-icon">✦</span></div>
+
+  <div class="quest-section-title">⚔ Active Quests</div>
+  <ul class="quest-list" id="activeQuests">
+    <li class="empty-state">
+      <span class="empty-icon">📜</span>
+      Thy scroll awaits its first decree, brave adventurer.
+    </li>
+  </ul>
+
+  <div class="completed-section" id="completedSection" style="display:none">
+    <button class="toggle-completed" onclick="toggleCompleted()">
+      <span id="toggleArrow">▼</span> Completed Deeds (<span id="completedCount">0</span>)
+    </button>
+    <ul class="quest-list" id="completedQuests" style="display:none"></ul>
+  </div>
+
+  <div class="stats-bar">
+    <div class="stat">
+      <span class="stat-num" id="statActive">0</span>
+      <span class="stat-label">Active</span>
+    </div>
+    <div class="stat">
+      <span class="stat-num" id="statDone">0</span>
+      <span class="stat-label">Slain</span>
+    </div>
+    <div class="stat">
+      <span class="stat-num" id="statXP">0</span>
+      <span class="stat-label">Glory</span>
+    </div>
+  </div>
+</div>
+
+<script>
+const quests = [];
+let completedVisible = false;
+const RANKS = ['Common', 'Uncommon', 'Rare', 'Epic', 'Legendary'];
+const RANK_CLASSES = ['rank-common', 'rank-uncommon', 'rank-rare', 'rank-epic', 'rank-legendary'];
+const XP_VALUES = [10, 25, 50, 100, 250];
+
+async function transformTask(task) {
+  const response = await fetch("https://api.anthropic.com/v1/messages", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      model: "claude-sonnet-4-20250514",
+      max_tokens: 1000,
+      messages: [{
+        role: "user",
+        content: `Transform this mundane to-do task into a dramatic fantasy quest description and assign it a rank.
+
+Task: "${task}"
+
+Respond ONLY with valid JSON, no markdown, no extra text:
+{
+  "quest": "A single dramatic fantasy sentence (15-40 words) describing this task as an epic quest. Use archaic/fantasy language. Be creative and funny. E.g. 'do laundry' becomes 'Venture forth into the Sudsy Depths of Mount Washmore and vanquish the Legion of Soiled Garments that besmirch thine honor.'",
+  "rank": "ONE of: Common, Uncommon, Rare, Epic, or Legendary — based on how difficult/important the task seems"
+}`
+      }]
+    })
+  });
+  const data = await response.json();
+  const text = data.content.map(b => b.text || '').join('');
+  const clean = text.replace(/```json|```/g, '').trim();
+  return JSON.parse(clean);
+}
+
+async function addQuest() {
+  const input = document.getElementById('taskInput');
+  const btn = document.getElementById('addBtn');
+  const task = input.value.trim();
+  if (!task) return;
+
+  input.value = '';
+  btn.disabled = true;
+  btn.innerHTML = '<span class="loading-rune">⚙</span> Inscribing…';
+
+  // Show placeholder quest immediately
+  const tempId = Date.now();
+  const tempQuest = {
+    id: tempId,
+    original: task,
+    quest: 'The scribes consult the ancient tomes...',
+    rank: 'Common',
+    rankClass: 'rank-common',
+    xp: 10,
+    completed: false,
+    loading: true
+  };
+  quests.unshift(tempQuest);
+  renderQuests();
+
+  try {
+    const result = await transformTask(task);
+    const rankIdx = RANKS.indexOf(result.rank);
+    const ri = rankIdx >= 0 ? rankIdx : 0;
+
+    const q = quests.find(q => q.id === tempId);
+    if (q) {
+      q.quest = result.quest;
+      q.rank = RANKS[ri];
+      q.rankClass = RANK_CLASSES[ri];
+      q.xp = XP_VALUES[ri];
+      q.loading = false;
+    }
+  } catch (e) {
+    const q = quests.find(q => q.id === tempId);
+    if (q) {
+      q.quest = `Venture forth and ${task.toLowerCase()}, for the realm demands it!`;
+      q.loading = false;
+    }
+  }
+
+  btn.disabled = false;
+  btn.textContent = 'Inscribe';
+  renderQuests();
+}
+
+function toggleQuest(id) {
+  const q = quests.find(q => q.id === id);
+  if (q) {
+    q.completed = !q.completed;
+    renderQuests();
+  }
+}
+
+function deleteQuest(id) {
+  const idx = quests.findIndex(q => q.id === id);
+  if (idx !== -1) quests.splice(idx, 1);
+  renderQuests();
+}
+
+function toggleCompleted() {
+  completedVisible = !completedVisible;
+  document.getElementById('completedQuests').style.display = completedVisible ? 'flex' : 'none';
+  document.getElementById('completedQuests').style.flexDirection = 'column';
+  document.getElementById('completedQuests').style.gap = '12px';
+  document.getElementById('toggleArrow').textContent = completedVisible ? '▲' : '▼';
+}
+
+function makeQuestItem(q) {
+  const li = document.createElement('li');
+  li.className = 'quest-item' + (q.completed ? ' completed' : '');
+  li.dataset.id = q.id;
+
+  li.innerHTML = `
+    <input type="checkbox" class="quest-check" ${q.completed ? 'checked' : ''} onchange="toggleQuest(${q.id})">
+    <div class="quest-content">
+      <div class="quest-original">${escHtml(q.original)}</div>
+      <div class="quest-transformed">${q.loading ? '<span class="loading-rune">⚙</span> The scribes consult the ancient tomes…' : escHtml(q.quest)}</div>
+      ${!q.loading ? `<div class="quest-meta">
+        <span class="quest-rank ${q.rankClass}">${q.rank}</span>
+        <span style="font-size:0.72rem;color:var(--ink-faded);font-family:'Cinzel',serif;opacity:0.7">+${q.xp} Glory</span>
+      </div>` : ''}
+    </div>
+    <button class="delete-btn" onclick="deleteQuest(${q.id})" title="Abandon quest">✕</button>
+  `;
+  return li;
+}
+
+function escHtml(s) {
+  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function renderQuests() {
+  const active = quests.filter(q => !q.completed);
+  const done = quests.filter(q => q.completed);
+
+  const activeEl = document.getElementById('activeQuests');
+  activeEl.innerHTML = '';
+  if (active.length === 0) {
+    activeEl.innerHTML = '<li class="empty-state"><span class="empty-icon">📜</span>Thy scroll awaits its first decree, brave adventurer.</li>';
+  } else {
+    active.forEach(q => activeEl.appendChild(makeQuestItem(q)));
+  }
+
+  const doneEl = document.getElementById('completedQuests');
+  doneEl.innerHTML = '';
+  done.forEach(q => doneEl.appendChild(makeQuestItem(q)));
+
+  document.getElementById('completedSection').style.display = done.length > 0 ? 'block' : 'none';
+  document.getElementById('completedCount').textContent = done.length;
+
+  document.getElementById('statActive').textContent = active.length;
+  document.getElementById('statDone').textContent = done.length;
+  const totalXP = done.reduce((sum, q) => sum + (q.xp || 0), 0);
+  document.getElementById('statXP').textContent = totalXP;
+}
+
+document.getElementById('taskInput').addEventListener('keydown', e => {
+  if (e.key === 'Enter') addQuest();
+});
+
+renderQuests();
+</script>
+</body>
+</html>
