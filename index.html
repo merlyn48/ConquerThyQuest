@@ -3,666 +3,816 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>The Grand Quest Log</title>
-<link href="https://fonts.googleapis.com/css2?family=MedievalSharp&family=Cinzel:wght@400;600;900&family=IM+Fell+English:ital@0;1&display=swap" rel="stylesheet">
+<title>The Grand Quest Log ⚔️</title>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@400;700;900&family=Cinzel:wght@400;600;700&family=IM+Fell+English:ital@0;1&display=swap" rel="stylesheet">
 <style>
-  :root {
-    --parchment: #f4e8c1;
-    --parchment-dark: #e8d5a3;
-    --parchment-shadow: #c9a96e;
-    --ink: #2c1810;
-    --ink-faded: #5c3d2e;
-    --blood-red: #8b1a1a;
-    --gold: #c9942a;
-    --gold-bright: #e8b84b;
-    --aged-green: #4a5e3a;
-    --vellum: #ede0b8;
-  }
+:root {
+  --parch: #f5e6c0;
+  --parch2: #ead4a0;
+  --parch3: #dfc080;
+  --ink: #1e0f06;
+  --ink2: #4a2c18;
+  --ink3: #7a5035;
+  --gold: #c8921e;
+  --gold2: #e8b84b;
+  --gold3: #f5d078;
+  --red: #8b1a1a;
+  --red2: #b02222;
+  --green: #3a5228;
+  --green2: #5a7a40;
+  --blue: #1a3a6b;
+  --purple: #4a1a6b;
+  --border: #a07030;
+}
+* { margin:0; padding:0; box-sizing:border-box; }
+html { scroll-behavior:smooth; }
 
-  * { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+  min-height:100vh;
+  background:#100904;
+  background-image:
+    radial-gradient(ellipse 80% 60% at 50% 0%,#2a1508 0%,transparent 70%),
+    radial-gradient(ellipse 60% 40% at 20% 100%,#1a0e05 0%,transparent 60%);
+  font-family:'IM Fell English',serif;
+  color:var(--ink);
+  overflow-x:hidden;
+}
 
-  body {
-    min-height: 100vh;
-    background: #1a0f08;
-    background-image:
-      radial-gradient(ellipse at 20% 20%, #2d1a0e 0%, transparent 60%),
-      radial-gradient(ellipse at 80% 80%, #1f1208 0%, transparent 60%),
-      url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='400'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='400' height='400' filter='url(%23noise)' opacity='0.08'/%3E%3C/svg%3E");
-    font-family: 'IM Fell English', serif;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    padding: 40px 20px 60px;
-  }
+/* ── Particles ── */
+.particles{position:fixed;inset:0;pointer-events:none;z-index:0;overflow:hidden;}
+.particle{
+  position:absolute;opacity:0;user-select:none;pointer-events:none;
+  animation:float-up linear infinite;
+}
+@keyframes float-up{
+  0%{opacity:0;transform:translateY(0) rotate(0deg) scale(0.4);}
+  10%{opacity:0.6;}
+  90%{opacity:0.3;}
+  100%{opacity:0;transform:translateY(-100vh) rotate(720deg) scale(1.1);}
+}
 
-  /* Decorative top emblem */
-  .emblem {
-    font-size: 2.5rem;
-    margin-bottom: -10px;
-    filter: drop-shadow(0 0 12px rgba(201,148,42,0.6));
-    animation: glow-pulse 3s ease-in-out infinite;
-  }
+/* ── Header ── */
+.header{text-align:center;padding:44px 20px 16px;position:relative;z-index:2;}
+.header-crest{
+  font-size:3.2rem;display:block;margin-bottom:8px;
+  filter:drop-shadow(0 0 20px rgba(200,146,30,0.8));
+  animation:crest-bob 4s ease-in-out infinite;
+}
+@keyframes crest-bob{
+  0%,100%{transform:translateY(0) rotate(-2deg);}
+  50%{transform:translateY(-8px) rotate(2deg);}
+}
+h1{
+  font-family:'Cinzel Decorative',serif;font-weight:900;
+  font-size:clamp(1.5rem,4.5vw,3rem);
+  color:var(--gold3);
+  text-shadow:0 0 40px rgba(200,146,30,0.9),0 2px 8px rgba(0,0,0,0.9),0 0 80px rgba(200,146,30,0.4);
+  letter-spacing:0.04em;line-height:1.1;
+}
+.tagline{font-style:italic;color:#a07840;font-size:0.9rem;margin-top:8px;letter-spacing:0.05em;}
 
-  @keyframes glow-pulse {
-    0%, 100% { filter: drop-shadow(0 0 8px rgba(201,148,42,0.5)); }
-    50% { filter: drop-shadow(0 0 20px rgba(232,184,75,0.9)); }
-  }
+/* ── Tabs ── */
+.tabs{
+  display:flex;justify-content:center;gap:0;
+  margin:28px auto 0;max-width:700px;padding:0 20px;
+  position:relative;z-index:2;
+}
+.tab-btn{
+  flex:1;background:rgba(20,10,4,0.65);
+  border:1.5px solid #5c3a18;color:#a07840;
+  font-family:'Cinzel',serif;font-size:0.68rem;font-weight:600;
+  letter-spacing:0.12em;text-transform:uppercase;
+  padding:10px 6px;cursor:pointer;transition:all 0.25s;
+}
+.tab-btn:first-child{border-radius:4px 0 0 4px;}
+.tab-btn:last-child{border-radius:0 4px 4px 0;}
+.tab-btn+.tab-btn{border-left:none;}
+.tab-btn:hover{background:rgba(200,146,30,0.15);color:var(--gold2);}
+.tab-btn.active{
+  background:linear-gradient(135deg,#3a1e08,#5c2e10);
+  color:var(--gold3);border-color:var(--gold);
+  box-shadow:0 0 12px rgba(200,146,30,0.3);
+}
+.tab-icon{display:block;font-size:1.1rem;margin-bottom:2px;}
 
-  h1 {
-    font-family: 'Cinzel', serif;
-    font-weight: 900;
-    font-size: clamp(2rem, 5vw, 3.2rem);
-    color: var(--gold-bright);
-    text-align: center;
-    text-shadow:
-      0 0 30px rgba(201,148,42,0.8),
-      0 2px 4px rgba(0,0,0,0.8),
-      0 0 60px rgba(201,148,42,0.3);
-    letter-spacing: 0.08em;
-    margin-bottom: 6px;
-  }
+/* ── Scroll Card ── */
+.scroll-wrap{max-width:700px;margin:0 auto;padding:0 20px 60px;position:relative;z-index:2;}
+.pane{display:none;}
+.pane.active{display:block;}
 
-  .subtitle {
-    font-family: 'IM Fell English', serif;
-    font-style: italic;
-    color: #a07840;
-    font-size: 1rem;
-    text-align: center;
-    margin-bottom: 36px;
-    letter-spacing: 0.05em;
-  }
+.scroll{
+  background:
+    radial-gradient(ellipse at 30% 20%,rgba(255,245,210,0.55) 0%,transparent 60%),
+    radial-gradient(ellipse at 70% 80%,rgba(220,185,120,0.35) 0%,transparent 60%),
+    linear-gradient(160deg,#f8ecd4 0%,#eedd9e 50%,#e5cb80 100%);
+  border-radius:3px;
+  border:2px solid var(--border);
+  box-shadow:
+    0 0 0 4px #7a5010,0 0 0 6px #4a2e08,
+    inset 0 0 120px rgba(150,90,20,0.1),
+    0 30px 80px rgba(0,0,0,0.8),0 60px 120px rgba(0,0,0,0.4);
+  padding:52px 48px 44px;
+  position:relative;overflow:hidden;margin-top:-2px;
+}
+.scroll::before{
+  content:'';position:absolute;inset:0;pointer-events:none;z-index:0;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23n)' opacity='0.05'/%3E%3C/svg%3E");
+}
+.scroll-rod{
+  position:absolute;left:-8px;right:-8px;height:24px;
+  background:linear-gradient(to bottom,#7a5010 0%,#c8921e 30%,#e8b84b 50%,#c8921e 70%,#7a5010 100%);
+  border-radius:4px;
+  box-shadow:0 4px 16px rgba(0,0,0,0.6),inset 0 1px 0 rgba(255,255,255,0.2);
+  z-index:20;
+}
+.scroll-rod.top{top:-8px;}
+.scroll-rod.bottom{bottom:-8px;}
+.scroll-rod::before,.scroll-rod::after{
+  content:'';position:absolute;top:50%;transform:translateY(-50%);
+  width:32px;height:32px;
+  background:radial-gradient(circle at 40% 35%,#e8b84b,#8b6010);
+  border-radius:50%;box-shadow:0 3px 8px rgba(0,0,0,0.5);
+}
+.scroll-rod::before{left:-10px;}
+.scroll-rod::after{right:-10px;}
 
-  /* Main parchment container */
-  .scroll {
-    width: 100%;
-    max-width: 740px;
-    background: var(--parchment);
-    background-image:
-      url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='paper'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.04' numOctaves='5' result='noise'/%3E%3CfeDiffuseLighting in='noise' lighting-color='%23f4e8c1' surfaceScale='2'%3E%3CfeDistantLight azimuth='45' elevation='60'/%3E%3C/feDiffuseLighting%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23paper)' opacity='0.4'/%3E%3C/svg%3E"),
-      linear-gradient(160deg, #f8efd4 0%, #f0e0b0 40%, #e8d490 100%);
-    border-radius: 4px;
-    box-shadow:
-      0 0 0 2px var(--parchment-shadow),
-      0 0 0 4px #8b6914,
-      0 0 0 6px #5c4510,
-      inset 0 0 80px rgba(160,100,30,0.15),
-      0 20px 60px rgba(0,0,0,0.7),
-      0 40px 100px rgba(0,0,0,0.4);
-    padding: 48px 52px;
-    position: relative;
-    overflow: hidden;
-  }
+.floral{position:absolute;font-size:1.5rem;color:var(--gold);opacity:0.4;z-index:1;pointer-events:none;}
+.floral.tl{top:28px;left:22px;transform:rotate(-15deg);}
+.floral.tr{top:28px;right:22px;transform:rotate(15deg) scaleX(-1);}
+.floral.bl{bottom:28px;left:22px;transform:rotate(15deg) scaleY(-1);}
+.floral.br{bottom:28px;right:22px;transform:rotate(-15deg) scale(-1);}
 
-  /* Scroll top/bottom curl effect */
-  .scroll::before, .scroll::after {
-    content: '';
-    position: absolute;
-    left: -6px; right: -6px;
-    height: 28px;
-    background: linear-gradient(to bottom, #8b6914, #c9942a, #8b6914);
-    border-radius: 4px;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.5);
-    z-index: 10;
-  }
-  .scroll::before { top: -4px; }
-  .scroll::after { bottom: -4px; }
+.scroll-content{position:relative;z-index:2;}
 
-  /* Corner ornaments */
-  .corner {
-    position: absolute;
-    font-size: 1.8rem;
-    color: var(--gold);
-    opacity: 0.6;
-    z-index: 5;
-  }
-  .corner.tl { top: 18px; left: 18px; }
-  .corner.tr { top: 18px; right: 18px; transform: scaleX(-1); }
-  .corner.bl { bottom: 18px; left: 18px; transform: scaleY(-1); }
-  .corner.br { bottom: 18px; right: 18px; transform: scale(-1); }
+/* ── Inputs ── */
+.section-label{
+  font-family:'Cinzel',serif;font-size:0.67rem;font-weight:700;
+  letter-spacing:0.16em;text-transform:uppercase;color:var(--ink3);
+  margin-bottom:10px;display:flex;align-items:center;gap:6px;
+}
+.input-row{display:flex;gap:8px;align-items:stretch;}
+#taskInput{
+  flex:1;background:rgba(255,255,255,0.28);
+  border:1.5px solid var(--border);border-radius:2px;
+  padding:12px 16px;font-family:'IM Fell English',serif;font-size:1rem;
+  color:var(--ink);outline:none;
+  box-shadow:inset 0 2px 6px rgba(0,0,0,0.07);
+  transition:border-color 0.2s,box-shadow 0.2s;
+}
+#taskInput::placeholder{color:var(--ink3);font-style:italic;opacity:0.6;}
+#taskInput:focus{
+  border-color:var(--gold);
+  box-shadow:inset 0 2px 6px rgba(0,0,0,0.07),0 0 0 2px rgba(200,146,30,0.2);
+}
+.btn-inscribe{
+  background:linear-gradient(160deg,#8b1a1a 0%,#5c0d0d 100%);
+  border:1.5px solid #7a1515;border-radius:2px;
+  color:var(--gold3);font-family:'Cinzel',serif;font-size:0.63rem;font-weight:700;
+  letter-spacing:0.12em;text-transform:uppercase;
+  padding:0 18px;cursor:pointer;transition:all 0.2s;
+  box-shadow:0 3px 10px rgba(0,0,0,0.3),inset 0 1px 0 rgba(255,255,255,0.1);
+  white-space:nowrap;
+}
+.btn-inscribe:hover:not(:disabled){
+  background:linear-gradient(160deg,#a52020 0%,#781010 100%);
+  box-shadow:0 5px 16px rgba(139,26,26,0.5),inset 0 1px 0 rgba(255,255,255,0.15);
+  transform:translateY(-2px);
+}
+.btn-inscribe:disabled{opacity:0.5;cursor:not-allowed;transform:none;}
 
-  /* Divider */
-  .divider {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    margin: 20px 0 28px;
-    color: var(--gold);
-  }
-  .divider::before, .divider::after {
-    content: '';
-    flex: 1;
-    height: 1px;
-    background: linear-gradient(to right, transparent, var(--parchment-shadow), transparent);
-  }
-  .divider-icon { font-size: 1.1rem; opacity: 0.7; }
+/* ── HR ── */
+.hr-fancy{
+  display:flex;align-items:center;gap:10px;
+  margin:22px 0;color:var(--gold);font-size:0.9rem;
+}
+.hr-fancy::before,.hr-fancy::after{
+  content:'';flex:1;height:1px;
+  background:linear-gradient(to right,transparent,var(--border),transparent);
+}
 
-  /* Input area */
-  .input-section {
-    margin-bottom: 32px;
-  }
+/* ── Quest Items ── */
+.quest-list{list-style:none;display:flex;flex-direction:column;gap:10px;min-height:50px;}
+.empty-state{
+  text-align:center;padding:28px 0;
+  color:var(--ink3);font-style:italic;opacity:0.55;
+  line-height:1.6;font-size:0.93rem;
+}
+.empty-icon{font-size:2rem;display:block;margin-bottom:6px;}
 
-  .input-label {
-    font-family: 'Cinzel', serif;
-    font-size: 0.75rem;
-    font-weight: 600;
-    color: var(--ink-faded);
-    letter-spacing: 0.12em;
-    text-transform: uppercase;
-    display: block;
-    margin-bottom: 10px;
-  }
+.quest-item{
+  background:rgba(255,255,255,0.22);
+  border:1px solid rgba(140,90,20,0.28);
+  border-radius:2px;padding:13px 76px 13px 46px;
+  position:relative;transition:all 0.3s;
+  box-shadow:0 2px 6px rgba(0,0,0,0.06);
+  animation:quest-appear 0.45s cubic-bezier(0.34,1.56,0.64,1) forwards;
+}
+@keyframes quest-appear{
+  from{opacity:0;transform:translateX(-24px) scale(0.97);}
+  to{opacity:1;transform:translateX(0) scale(1);}
+}
+.quest-item:hover{
+  background:rgba(255,255,255,0.34);
+  border-color:rgba(140,90,20,0.5);
+  box-shadow:0 4px 14px rgba(0,0,0,0.1);
+}
+.quest-item.done{background:rgba(58,82,40,0.1);border-color:rgba(58,82,40,0.22);}
 
-  .task-input-wrap {
-    display: flex;
-    gap: 10px;
-    align-items: stretch;
-  }
+.q-check{
+  position:absolute;left:13px;top:50%;transform:translateY(-50%);
+  width:22px;height:22px;appearance:none;
+  background:rgba(240,220,170,0.5);border:1.5px solid var(--border);
+  border-radius:50%;cursor:pointer;transition:all 0.25s;
+}
+.q-check:hover{border-color:var(--green2);background:rgba(58,82,40,0.2);}
+.q-check:checked{background:var(--green);border-color:#2a3e18;}
+.q-check:checked::after{
+  content:'✦';position:absolute;top:50%;left:50%;
+  transform:translate(-50%,-50%);color:#b8d88a;font-size:11px;
+}
 
-  #taskInput {
-    flex: 1;
-    background: rgba(255,255,255,0.3);
-    border: 1.5px solid var(--parchment-shadow);
-    border-radius: 2px;
-    padding: 12px 16px;
-    font-family: 'IM Fell English', serif;
-    font-size: 1rem;
-    color: var(--ink);
-    outline: none;
-    transition: border-color 0.2s, box-shadow 0.2s;
-    box-shadow: inset 0 2px 6px rgba(0,0,0,0.08);
-  }
+.quest-actions{
+  position:absolute;right:8px;top:50%;transform:translateY(-50%);
+  display:flex;flex-direction:column;gap:4px;align-items:center;
+  opacity:0;transition:opacity 0.2s;
+}
+.quest-item:hover .quest-actions{opacity:1;}
+.btn-action{
+  background:none;border:none;cursor:pointer;padding:3px;
+  font-size:0.8rem;transition:all 0.2s;line-height:1;
+  color:var(--ink3);
+}
+.btn-action:hover{transform:scale(1.3);}
+.btn-reroll:hover{transform:scale(1.3) rotate(180deg);}
+.btn-del:hover{color:var(--red)!important;}
 
-  #taskInput::placeholder {
-    color: var(--parchment-shadow);
-    font-style: italic;
-  }
+.q-original{font-size:0.7rem;color:var(--ink3);font-style:italic;opacity:0.65;margin-bottom:3px;}
+.q-original::before{content:'☞ ';}
+.q-text{font-size:0.96rem;color:var(--ink);line-height:1.45;}
+.quest-item.done .q-text{text-decoration:line-through;opacity:0.45;color:var(--ink2);}
+.q-footer{display:flex;align-items:center;gap:8px;margin-top:5px;flex-wrap:wrap;}
+.rank-badge{
+  font-family:'Cinzel',serif;font-size:0.57rem;font-weight:700;
+  letter-spacing:0.1em;text-transform:uppercase;
+  padding:2px 7px;border-radius:1px;
+}
+.r-common{background:rgba(58,82,40,0.18);color:#3a5228;border:1px solid rgba(58,82,40,0.3);}
+.r-uncommon{background:rgba(26,58,107,0.15);color:#1a3a6b;border:1px solid rgba(26,58,107,0.25);}
+.r-rare{background:rgba(74,26,107,0.15);color:#4a1a6b;border:1px solid rgba(74,26,107,0.25);}
+.r-epic{background:rgba(180,100,0,0.15);color:#7a4500;border:1px solid rgba(180,100,0,0.3);}
+.r-legendary{background:rgba(139,26,26,0.18);color:var(--red);border:1px solid rgba(139,26,26,0.35);}
+.xp-label{font-family:'Cinzel',serif;font-size:0.57rem;color:var(--ink3);opacity:0.65;}
+.spin{display:inline-block;animation:spin 1s linear infinite;}
+@keyframes spin{to{transform:rotate(360deg);}}
 
-  #taskInput:focus {
-    border-color: var(--gold);
-    box-shadow: inset 0 2px 6px rgba(0,0,0,0.08), 0 0 0 2px rgba(201,148,42,0.2);
-  }
+/* ── Done section ── */
+.done-header{display:flex;align-items:center;gap:8px;margin:24px 0 12px;}
+.done-toggle{
+  background:none;border:none;font-family:'Cinzel',serif;
+  font-size:0.67rem;font-weight:700;letter-spacing:0.14em;text-transform:uppercase;
+  color:var(--ink3);cursor:pointer;
+  display:flex;align-items:center;gap:5px;
+  padding:0;opacity:0.6;transition:opacity 0.2s;
+}
+.done-toggle:hover{opacity:1;}
 
-  .add-btn {
-    background: linear-gradient(135deg, #8b1a1a 0%, #5c0f0f 100%);
-    border: 1.5px solid #6b1515;
-    color: var(--gold-bright);
-    font-family: 'Cinzel', serif;
-    font-size: 0.72rem;
-    font-weight: 600;
-    letter-spacing: 0.1em;
-    padding: 0 20px;
-    cursor: pointer;
-    border-radius: 2px;
-    transition: all 0.2s;
-    box-shadow: 0 3px 8px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.1);
-    white-space: nowrap;
-    text-transform: uppercase;
-  }
+/* ── Stats bar ── */
+.stats-bar{
+  display:flex;gap:0;justify-content:center;
+  margin-top:24px;padding-top:20px;
+  border-top:1px dashed rgba(160,100,30,0.3);
+}
+.stat-pill{flex:1;text-align:center;padding:10px 6px;border-right:1px dashed rgba(160,100,30,0.2);}
+.stat-pill:last-child{border-right:none;}
+.stat-num{
+  font-family:'Cinzel Decorative',serif;font-size:1.5rem;font-weight:900;
+  color:var(--gold2);display:block;
+  text-shadow:0 0 12px rgba(200,146,30,0.4);
+}
+.stat-lbl{font-family:'Cinzel',serif;font-size:0.57rem;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;color:var(--ink3);opacity:0.6;}
 
-  .add-btn:hover {
-    background: linear-gradient(135deg, #a51f1f 0%, #7a1414 100%);
-    box-shadow: 0 4px 12px rgba(139,26,26,0.4), inset 0 1px 0 rgba(255,255,255,0.15);
-    transform: translateY(-1px);
-  }
+/* ── Chronicles Pane ── */
+.pane-title{
+  font-family:'Cinzel Decorative',serif;font-size:1.15rem;font-weight:700;
+  color:var(--ink2);text-align:center;margin-bottom:4px;
+}
+.pane-sub{font-style:italic;color:var(--ink3);font-size:0.85rem;text-align:center;margin-bottom:22px;opacity:0.7;}
 
-  .add-btn:active { transform: translateY(0); }
-  .add-btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+.today-card{
+  background:rgba(139,26,26,0.08);border:1.5px solid rgba(139,26,26,0.25);
+  border-radius:3px;padding:20px 24px;text-align:center;margin-bottom:18px;
+}
+.today-num{
+  font-family:'Cinzel Decorative',serif;font-size:3rem;font-weight:900;
+  color:var(--red);text-shadow:0 0 20px rgba(139,26,26,0.3);line-height:1;
+}
+.today-lbl{font-family:'Cinzel',serif;font-size:0.68rem;letter-spacing:0.14em;text-transform:uppercase;color:var(--ink3);opacity:0.7;margin-top:4px;}
+.today-glory{font-size:0.85rem;color:var(--gold);margin-top:6px;font-style:italic;}
 
-  /* Quest list */
-  .quest-section-title {
-    font-family: 'Cinzel', serif;
-    font-size: 0.72rem;
-    font-weight: 600;
-    color: var(--ink-faded);
-    letter-spacing: 0.15em;
-    text-transform: uppercase;
-    margin-bottom: 14px;
-  }
+.month-header{
+  display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;
+}
+.month-title{font-family:'Cinzel',serif;font-size:0.7rem;font-weight:700;letter-spacing:0.14em;text-transform:uppercase;color:var(--ink3);}
+.month-nav{display:flex;align-items:center;gap:8px;}
+.btn-nav{
+  background:none;border:1px solid var(--border);color:var(--ink3);
+  font-size:0.75rem;padding:3px 8px;cursor:pointer;border-radius:2px;transition:all 0.15s;
+}
+.btn-nav:hover{background:rgba(200,146,30,0.15);color:var(--gold);}
 
-  .quest-list {
-    list-style: none;
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-    min-height: 60px;
-  }
+.calendar-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin-bottom:20px;}
+.cal-day-lbl{font-family:'Cinzel',serif;font-size:0.53rem;letter-spacing:0.08em;text-transform:uppercase;color:var(--ink3);opacity:0.5;text-align:center;padding:2px 0 4px;}
+.cal-day{
+  aspect-ratio:1;border-radius:2px;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  font-family:'Cinzel',serif;font-size:0.6rem;
+  background:rgba(255,255,255,0.14);border:1px solid rgba(160,100,30,0.1);
+  position:relative;transition:all 0.2s;cursor:default;
+}
+.cal-day.empty{background:transparent;border-color:transparent;}
+.cal-day.today{border-color:var(--gold);background:rgba(200,146,30,0.15);box-shadow:0 0 8px rgba(200,146,30,0.25);}
+.cal-day.has-q{background:rgba(58,82,40,0.2);border-color:rgba(58,82,40,0.4);}
+.cal-day.has-q .cal-dnum{color:var(--green2);font-weight:700;}
+.cal-dnum{color:var(--ink3);opacity:0.7;font-size:0.57rem;}
+.cal-dot{font-size:0.45rem;line-height:1;color:var(--green2);}
+.cal-tip{
+  position:absolute;bottom:calc(100% + 5px);left:50%;transform:translateX(-50%);
+  background:var(--ink);color:var(--parch);
+  font-family:'IM Fell English',serif;font-size:0.63rem;
+  padding:4px 8px;border-radius:2px;white-space:nowrap;
+  pointer-events:none;opacity:0;transition:opacity 0.15s;z-index:50;
+}
+.cal-day:hover .cal-tip{opacity:1;}
 
-  .quest-item {
-    background: rgba(255,255,255,0.2);
-    border: 1px solid rgba(160,100,30,0.25);
-    border-radius: 2px;
-    padding: 14px 16px 14px 48px;
-    position: relative;
-    transition: all 0.3s ease;
-    box-shadow: 0 1px 4px rgba(0,0,0,0.07);
-    animation: slide-in 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
-  }
+.records-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:16px;}
+.record-card{
+  background:rgba(255,255,255,0.18);border:1px solid rgba(140,90,20,0.2);
+  border-radius:2px;padding:12px 14px;text-align:center;
+}
+.rec-num{font-family:'Cinzel',serif;font-size:1.3rem;font-weight:700;color:var(--gold2);display:block;}
+.rec-lbl{font-size:0.67rem;color:var(--ink3);font-style:italic;opacity:0.7;}
 
-  @keyframes slide-in {
-    from { opacity: 0; transform: translateX(-20px); }
-    to { opacity: 1; transform: translateX(0); }
-  }
+/* ── Confetti ── */
+.confetti-wrap{position:fixed;inset:0;pointer-events:none;z-index:999;overflow:hidden;}
+.confetti-piece{
+  position:absolute;animation:cffall 1.5s ease-in forwards;
+}
+@keyframes cffall{
+  0%{transform:translateY(-20px) rotate(0deg) scale(0);opacity:1;}
+  100%{transform:translateY(60vh) rotate(720deg) scale(1);opacity:0;}
+}
 
-  .quest-item:hover {
-    background: rgba(255,255,255,0.35);
-    border-color: rgba(160,100,30,0.45);
-    box-shadow: 0 3px 10px rgba(0,0,0,0.1);
-  }
-
-  .quest-item.completed {
-    background: rgba(74,94,58,0.12);
-    border-color: rgba(74,94,58,0.3);
-  }
-
-  /* Checkbox styled as wax seal */
-  .quest-check {
-    position: absolute;
-    left: 14px;
-    top: 50%;
-    transform: translateY(-50%);
-    width: 22px;
-    height: 22px;
-    cursor: pointer;
-    appearance: none;
-    background: var(--parchment-dark);
-    border: 1.5px solid var(--parchment-shadow);
-    border-radius: 50%;
-    transition: all 0.2s;
-    flex-shrink: 0;
-  }
-
-  .quest-check:hover {
-    border-color: var(--aged-green);
-    background: rgba(74,94,58,0.15);
-  }
-
-  .quest-check:checked {
-    background: var(--aged-green);
-    border-color: #2e3d22;
-  }
-
-  .quest-check:checked::after {
-    content: '✓';
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    color: #c8dba0;
-    font-size: 13px;
-    font-weight: bold;
-  }
-
-  .quest-content { }
-
-  .quest-original {
-    font-family: 'IM Fell English', serif;
-    font-size: 0.78rem;
-    color: var(--ink-faded);
-    font-style: italic;
-    margin-bottom: 4px;
-    opacity: 0.7;
-  }
-
-  .quest-original::before { content: '⚙ '; font-style: normal; font-size: 0.7rem; }
-
-  .quest-transformed {
-    font-family: 'IM Fell English', serif;
-    font-size: 1rem;
-    color: var(--ink);
-    line-height: 1.45;
-  }
-
-  .quest-item.completed .quest-transformed {
-    color: var(--ink-faded);
-    text-decoration: line-through;
-    opacity: 0.6;
-  }
-
-  .quest-meta {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    margin-top: 6px;
-  }
-
-  .quest-rank {
-    font-family: 'Cinzel', serif;
-    font-size: 0.62rem;
-    font-weight: 600;
-    letter-spacing: 0.1em;
-    padding: 2px 8px;
-    border-radius: 1px;
-    text-transform: uppercase;
-  }
-
-  .rank-common { background: rgba(74,94,58,0.2); color: #4a5e3a; border: 1px solid rgba(74,94,58,0.3); }
-  .rank-uncommon { background: rgba(30,80,150,0.15); color: #1e3a7a; border: 1px solid rgba(30,80,150,0.25); }
-  .rank-rare { background: rgba(100,30,150,0.15); color: #5a1a8a; border: 1px solid rgba(100,30,150,0.25); }
-  .rank-epic { background: rgba(180,100,0,0.15); color: #7a4500; border: 1px solid rgba(180,100,0,0.3); }
-  .rank-legendary { background: rgba(139,26,26,0.15); color: var(--blood-red); border: 1px solid rgba(139,26,26,0.3); }
-
-  .delete-btn {
-    position: absolute;
-    right: 12px;
-    top: 50%;
-    transform: translateY(-50%);
-    background: none;
-    border: none;
-    color: var(--parchment-shadow);
-    cursor: pointer;
-    font-size: 0.9rem;
-    opacity: 0;
-    transition: opacity 0.2s, color 0.2s;
-    padding: 4px;
-    line-height: 1;
-  }
-
-  .quest-item:hover .delete-btn { opacity: 1; }
-  .delete-btn:hover { color: var(--blood-red); }
-
-  /* Loading state */
-  .loading-rune {
-    display: inline-block;
-    animation: spin-rune 1s linear infinite;
-    font-size: 1rem;
-  }
-
-  @keyframes spin-rune {
-    from { transform: rotate(0deg); }
-    to { transform: rotate(360deg); }
-  }
-
-  /* Empty state */
-  .empty-state {
-    text-align: center;
-    padding: 30px 0;
-    color: var(--ink-faded);
-    font-style: italic;
-    font-size: 0.95rem;
-    opacity: 0.6;
-  }
-
-  .empty-state .empty-icon { font-size: 2rem; display: block; margin-bottom: 8px; }
-
-  /* Completed section */
-  .completed-section { margin-top: 28px; }
-
-  .toggle-completed {
-    background: none;
-    border: none;
-    font-family: 'Cinzel', serif;
-    font-size: 0.72rem;
-    font-weight: 600;
-    color: var(--ink-faded);
-    letter-spacing: 0.15em;
-    text-transform: uppercase;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    padding: 0;
-    margin-bottom: 14px;
-    opacity: 0.7;
-    transition: opacity 0.2s;
-  }
-  .toggle-completed:hover { opacity: 1; }
-
-  /* Stats bar */
-  .stats-bar {
-    display: flex;
-    gap: 20px;
-    justify-content: center;
-    margin-top: 24px;
-    padding-top: 20px;
-    border-top: 1px solid rgba(160,100,30,0.2);
-  }
-
-  .stat {
-    text-align: center;
-    color: var(--ink-faded);
-  }
-
-  .stat-num {
-    font-family: 'Cinzel', serif;
-    font-size: 1.4rem;
-    font-weight: 900;
-    color: var(--gold);
-    display: block;
-    text-shadow: 0 0 10px rgba(201,148,42,0.3);
-  }
-
-  .stat-label {
-    font-size: 0.68rem;
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
-    opacity: 0.6;
-  }
-
-  /* Scrollbar styling */
-  ::-webkit-scrollbar { width: 6px; }
-  ::-webkit-scrollbar-track { background: var(--parchment-dark); }
-  ::-webkit-scrollbar-thumb { background: var(--parchment-shadow); border-radius: 3px; }
-
-  @media (max-width: 600px) {
-    .scroll { padding: 36px 24px; }
-    h1 { font-size: 1.8rem; }
-  }
+@media(max-width:580px){
+  .scroll{padding:40px 24px 36px;}
+  h1{font-size:1.4rem;}
+  .records-grid{grid-template-columns:1fr;}
+}
 </style>
 </head>
 <body>
 
-<div class="emblem">⚔️</div>
-<h1>The Grand Quest Log</h1>
-<p class="subtitle">A Chronicle of Deeds Most Heroic & Mundane</p>
+<div class="particles" id="particles"></div>
+<div class="confetti-wrap" id="confetti"></div>
 
-<div class="scroll">
-  <div class="corner tl">✦</div>
-  <div class="corner tr">✦</div>
-  <div class="corner bl">✦</div>
-  <div class="corner br">✦</div>
+<header class="header">
+  <span class="header-crest">🏰</span>
+  <h1>The Grand Quest Log</h1>
+  <p class="tagline">A Chronicle of Deeds Most Heroic, Mundane & Occasionally Questionable</p>
+</header>
 
-  <div class="input-section">
-    <label class="input-label" for="taskInput">⚔ Declare Thy Task</label>
-    <div class="task-input-wrap">
-      <input type="text" id="taskInput" placeholder="e.g. do the laundry, send that email…" maxlength="200" />
-      <button class="add-btn" id="addBtn" onclick="addQuest()">Inscribe</button>
+<div class="tabs" id="tabs">
+  <button class="tab-btn active" data-pane="quests">
+    <span class="tab-icon">⚔️</span>Quests
+  </button>
+  <button class="tab-btn" data-pane="stats">
+    <span class="tab-icon">📜</span>Chronicles
+  </button>
+</div>
+
+<div class="scroll-wrap">
+
+  <!-- QUESTS PANE -->
+  <div class="pane active" id="pane-quests">
+    <div class="scroll">
+      <div class="scroll-rod top"></div>
+      <div class="scroll-rod bottom"></div>
+      <div class="floral tl">🌿</div><div class="floral tr">🌿</div>
+      <div class="floral bl">🌸</div><div class="floral br">🌸</div>
+      <div class="scroll-content">
+
+        <div class="section-label">🖊 Declare Thy Task</div>
+        <div class="input-row">
+          <input type="text" id="taskInput" placeholder="e.g. do the laundry, reply to Susan's email…" maxlength="200"/>
+          <button class="btn-inscribe" id="addBtn" onclick="addQuest()">✦ Inscribe</button>
+        </div>
+
+        <div class="hr-fancy">✦</div>
+
+        <div class="section-label">⚔️ Active Quests</div>
+        <ul class="quest-list" id="activeList">
+          <li class="empty-state">
+            <span class="empty-icon">🗺️</span>
+            Thy scroll remains bare, adventurer.<br>
+            <em>What deed shall be chronicled this day?</em>
+          </li>
+        </ul>
+
+        <div id="doneSection" style="display:none">
+          <div class="done-header">
+            <button class="done-toggle" id="doneToggle" onclick="toggleDone()">
+              <span id="doneArrow">▶</span>
+              Vanquished Deeds (<span id="doneCount">0</span>)
+            </button>
+          </div>
+          <ul class="quest-list" id="doneList" style="display:none"></ul>
+        </div>
+
+        <div class="stats-bar">
+          <div class="stat-pill">
+            <span class="stat-num" id="sActive">0</span>
+            <span class="stat-lbl">Active</span>
+          </div>
+          <div class="stat-pill">
+            <span class="stat-num" id="sDone">0</span>
+            <span class="stat-lbl">Slain Today</span>
+          </div>
+          <div class="stat-pill">
+            <span class="stat-num" id="sGlory">0</span>
+            <span class="stat-lbl">Glory</span>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 
-  <div class="divider"><span class="divider-icon">✦</span></div>
+  <!-- CHRONICLES PANE -->
+  <div class="pane" id="pane-stats">
+    <div class="scroll">
+      <div class="scroll-rod top"></div>
+      <div class="scroll-rod bottom"></div>
+      <div class="floral tl">🌿</div><div class="floral tr">🌿</div>
+      <div class="floral bl">🌸</div><div class="floral br">🌸</div>
+      <div class="scroll-content">
 
-  <div class="quest-section-title">⚔ Active Quests</div>
-  <ul class="quest-list" id="activeQuests">
-    <li class="empty-state">
-      <span class="empty-icon">📜</span>
-      Thy scroll awaits its first decree, brave adventurer.
-    </li>
-  </ul>
+        <div class="pane-title">The Hall of Chronicles</div>
+        <p class="pane-sub">A record of thy conquests, lest they be forgotten by the mists of time</p>
 
-  <div class="completed-section" id="completedSection" style="display:none">
-    <button class="toggle-completed" onclick="toggleCompleted()">
-      <span id="toggleArrow">▼</span> Completed Deeds (<span id="completedCount">0</span>)
-    </button>
-    <ul class="quest-list" id="completedQuests" style="display:none"></ul>
+        <div class="today-card">
+          <div class="today-num" id="todayNum">0</div>
+          <div class="today-lbl">⚔️ Quests Vanquished Today</div>
+          <div class="today-glory" id="todayGlory">+0 Glory earned this day</div>
+        </div>
+
+        <div class="month-header">
+          <span class="month-title" id="monthTitle">Month of ???</span>
+          <div class="month-nav">
+            <button class="btn-nav" onclick="changeMonth(-1)">◀</button>
+            <button class="btn-nav" onclick="changeMonth(1)">▶</button>
+          </div>
+        </div>
+        <div class="calendar-grid" id="calGrid"></div>
+
+        <div class="hr-fancy">✦</div>
+
+        <div class="section-label">📖 All-Time Records</div>
+        <div class="records-grid">
+          <div class="record-card"><span class="rec-num" id="recTotal">0</span><span class="rec-lbl">Total quests vanquished</span></div>
+          <div class="record-card"><span class="rec-num" id="recBestDay">0</span><span class="rec-lbl">Best single day</span></div>
+          <div class="record-card"><span class="rec-num" id="recBestMonth">0</span><span class="rec-lbl">Best single month</span></div>
+          <div class="record-card"><span class="rec-num" id="recStreak">0</span><span class="rec-lbl">Current day streak 🔥</span></div>
+        </div>
+
+      </div>
+    </div>
   </div>
 
-  <div class="stats-bar">
-    <div class="stat">
-      <span class="stat-num" id="statActive">0</span>
-      <span class="stat-label">Active</span>
-    </div>
-    <div class="stat">
-      <span class="stat-num" id="statDone">0</span>
-      <span class="stat-label">Slain</span>
-    </div>
-    <div class="stat">
-      <span class="stat-num" id="statXP">0</span>
-      <span class="stat-label">Glory</span>
-    </div>
-  </div>
 </div>
 
 <script>
-const quests = [];
-let completedVisible = false;
-const RANKS = ['Common', 'Uncommon', 'Rare', 'Epic', 'Legendary'];
-const RANK_CLASSES = ['rank-common', 'rank-uncommon', 'rank-rare', 'rank-epic', 'rank-legendary'];
-const XP_VALUES = [10, 25, 50, 100, 250];
+// ─── Constants ────────────────────────────────────────────
+const RANKS=['Common','Uncommon','Rare','Epic','Legendary'];
+const RANK_CLS=['r-common','r-uncommon','r-rare','r-epic','r-legendary'];
+const XP=[10,25,50,100,250];
+const MONTH_NAMES=['January','February','March','April','May','June','July','August','September','October','November','December'];
+const DAY_NAMES=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+const PARTICLE_CHARS=['✨','⭐','🌟','💫','🍂','🌸','🌿','❄️','🦋','🍄','🌙','🔮'];
 
-async function transformTask(task) {
-  const response = await fetch("https://api.anthropic.com/v1/messages", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      model: "claude-sonnet-4-20250514",
-      max_tokens: 1000,
-      messages: [{
-        role: "user",
-        content: `Transform this mundane to-do task into a dramatic fantasy quest description and assign it a rank.
+// ─── State ────────────────────────────────────────────────
+let quests=[];
+let viewMonth=new Date();
+let doneVisible=false;
+
+const todayKey=()=>{
+  const d=new Date();
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+};
+
+// ─── Storage ──────────────────────────────────────────────
+function save(){
+  try{localStorage.setItem('grandquestlog_v4',JSON.stringify({quests}));}catch(e){}
+}
+function load(){
+  try{
+    const raw=localStorage.getItem('grandquestlog_v4');
+    if(raw){const d=JSON.parse(raw);quests=d.quests||[];}
+  }catch(e){}
+}
+
+// ─── Particles ────────────────────────────────────────────
+function spawnParticles(){
+  const wrap=document.getElementById('particles');
+  setInterval(()=>{
+    const p=document.createElement('div');
+    p.className='particle';
+    p.textContent=PARTICLE_CHARS[Math.floor(Math.random()*PARTICLE_CHARS.length)];
+    p.style.left=Math.random()*100+'vw';
+    p.style.animationDuration=(7+Math.random()*10)+'s';
+    p.style.animationDelay=(Math.random()*2)+'s';
+    p.style.fontSize=(0.5+Math.random()*0.8)+'rem';
+    wrap.appendChild(p);
+    setTimeout(()=>p.remove(),20000);
+  },1400);
+}
+
+// ─── Confetti ─────────────────────────────────────────────
+function burst(){
+  const wrap=document.getElementById('confetti');
+  const chars=['⭐','✨','💫','🌟','🎉','🏆','⚔️','🛡️','💎','🌸','🐉','🔮'];
+  for(let i=0;i<18;i++){
+    const p=document.createElement('div');
+    p.className='confetti-piece';
+    p.textContent=chars[Math.floor(Math.random()*chars.length)];
+    p.style.left=(8+Math.random()*84)+'vw';
+    p.style.animationDelay=(Math.random()*0.7)+'s';
+    p.style.fontSize=(0.8+Math.random())+'rem';
+    wrap.appendChild(p);
+    setTimeout(()=>p.remove(),2600);
+  }
+}
+
+// ─── AI Transform ─────────────────────────────────────────
+async function transformTask(task){
+  const resp=await fetch("https://api.anthropic.com/v1/messages",{
+    method:"POST",
+    headers:{"Content-Type":"application/json"},
+    body:JSON.stringify({
+      model:"claude-sonnet-4-20250514",
+      max_tokens:1200,
+      messages:[{
+        role:"user",
+        content:`Transform this mundane to-do task into 10 wildly different fantasy quest phrasings. Be creative, funny, whimsical, and absurd. Use archaic language, ridiculous metaphors, dramatic flair.
 
 Task: "${task}"
 
-Respond ONLY with valid JSON, no markdown, no extra text:
+IMPORTANT: Respond ONLY with valid JSON. No markdown. No extra text:
 {
-  "quest": "A single dramatic fantasy sentence (15-40 words) describing this task as an epic quest. Use archaic/fantasy language. Be creative and funny. E.g. 'do laundry' becomes 'Venture forth into the Sudsy Depths of Mount Washmore and vanquish the Legion of Soiled Garments that besmirch thine honor.'",
-  "rank": "ONE of: Common, Uncommon, Rare, Epic, or Legendary — based on how difficult/important the task seems"
+  "phrasings": [
+    "phrasing 1 (15-45 words, heroic tone)",
+    "phrasing 2 (15-45 words, comedic/absurd tone)",
+    "phrasing 3 (15-45 words, ominous/foreboding tone)",
+    "phrasing 4 (15-45 words, poetic/flowery tone)",
+    "phrasing 5 (15-45 words, ancient prophecy style)",
+    "phrasing 6 (15-45 words, overly dramatic tone)",
+    "phrasing 7 (15-45 words, reluctant/grumbling hero tone)",
+    "phrasing 8 (15-45 words, wise wizard narrating style)",
+    "phrasing 9 (15-45 words, tavern bard ballad style)",
+    "phrasing 10 (15-45 words, matter-of-fact knight style)"
+  ],
+  "rank": "ONE of: Common, Uncommon, Rare, Epic, Legendary"
 }`
       }]
     })
   });
-  const data = await response.json();
-  const text = data.content.map(b => b.text || '').join('');
-  const clean = text.replace(/```json|```/g, '').trim();
+  const data=await resp.json();
+  const txt=data.content.map(b=>b.text||'').join('');
+  const clean=txt.replace(/```json|```/g,'').trim();
   return JSON.parse(clean);
 }
 
-async function addQuest() {
-  const input = document.getElementById('taskInput');
-  const btn = document.getElementById('addBtn');
-  const task = input.value.trim();
-  if (!task) return;
+// ─── Add Quest ────────────────────────────────────────────
+async function addQuest(){
+  const inp=document.getElementById('taskInput');
+  const btn=document.getElementById('addBtn');
+  const task=inp.value.trim();
+  if(!task){inp.focus();return;}
 
-  input.value = '';
-  btn.disabled = true;
-  btn.innerHTML = '<span class="loading-rune">⚙</span> Inscribing…';
+  inp.value='';
+  btn.disabled=true;
+  btn.innerHTML='<span class="spin">⚙</span> Scribing…';
 
-  // Show placeholder quest immediately
-  const tempId = Date.now();
-  const tempQuest = {
-    id: tempId,
-    original: task,
-    quest: 'The scribes consult the ancient tomes...',
-    rank: 'Common',
-    rankClass: 'rank-common',
-    xp: 10,
-    completed: false,
-    loading: true
-  };
-  quests.unshift(tempQuest);
+  const id=Date.now();
+  quests.unshift({
+    id,original:task,
+    phrasings:['The scribes consult the ancient tomes of lore…'],
+    phrasingIdx:0,
+    rank:'Common',rankCls:'r-common',xp:10,
+    done:false,completedAt:null,dateKey:null,loading:true
+  });
   renderQuests();
 
-  try {
-    const result = await transformTask(task);
-    const rankIdx = RANKS.indexOf(result.rank);
-    const ri = rankIdx >= 0 ? rankIdx : 0;
-
-    const q = quests.find(q => q.id === tempId);
-    if (q) {
-      q.quest = result.quest;
-      q.rank = RANKS[ri];
-      q.rankClass = RANK_CLASSES[ri];
-      q.xp = XP_VALUES[ri];
-      q.loading = false;
+  try{
+    const result=await transformTask(task);
+    const ri=Math.max(0,RANKS.indexOf(result.rank));
+    const q=quests.find(q=>q.id===id);
+    if(q){
+      q.phrasings=result.phrasings;
+      q.phrasingIdx=Math.floor(Math.random()*result.phrasings.length);
+      q.rank=RANKS[ri];q.rankCls=RANK_CLS[ri];q.xp=XP[ri];
+      q.loading=false;
     }
-  } catch (e) {
-    const q = quests.find(q => q.id === tempId);
-    if (q) {
-      q.quest = `Venture forth and ${task.toLowerCase()}, for the realm demands it!`;
-      q.loading = false;
+  }catch(e){
+    const q=quests.find(q=>q.id===id);
+    if(q){
+      q.phrasings=[
+        `Venture forth and ${task.toLowerCase()}, for the realm demands it of thee, brave hero!`,
+        `Lo, the prophecy speaketh: thou must ${task.toLowerCase()} before the stars align thrice!`,
+        `By the ancient decree of the Council of Elders, thou art compelled to ${task.toLowerCase()} forthwith!`
+      ];
+      q.phrasingIdx=0;q.loading=false;
     }
   }
 
-  btn.disabled = false;
-  btn.textContent = 'Inscribe';
-  renderQuests();
+  btn.disabled=false;btn.innerHTML='✦ Inscribe';
+  save();renderQuests();
 }
 
-function toggleQuest(id) {
-  const q = quests.find(q => q.id === id);
-  if (q) {
-    q.completed = !q.completed;
-    renderQuests();
-  }
+// ─── Reroll ───────────────────────────────────────────────
+function reroll(id){
+  const q=quests.find(q=>q.id===id);
+  if(!q||q.phrasings.length<=1)return;
+  let ni;
+  do{ni=Math.floor(Math.random()*q.phrasings.length);}
+  while(ni===q.phrasingIdx&&q.phrasings.length>1);
+  q.phrasingIdx=ni;
+  save();renderQuests();
 }
 
-function deleteQuest(id) {
-  const idx = quests.findIndex(q => q.id === id);
-  if (idx !== -1) quests.splice(idx, 1);
-  renderQuests();
+// ─── Toggle Done ──────────────────────────────────────────
+function toggleQuest(id){
+  const q=quests.find(q=>q.id===id);
+  if(!q)return;
+  q.done=!q.done;
+  q.completedAt=q.done?Date.now():null;
+  q.dateKey=q.done?todayKey():null;
+  if(q.done)burst();
+  save();renderQuests();renderStats();
+}
+function deleteQuest(id){
+  quests=quests.filter(q=>q.id!==id);
+  save();renderQuests();renderStats();
 }
 
-function toggleCompleted() {
-  completedVisible = !completedVisible;
-  document.getElementById('completedQuests').style.display = completedVisible ? 'flex' : 'none';
-  document.getElementById('completedQuests').style.flexDirection = 'column';
-  document.getElementById('completedQuests').style.gap = '12px';
-  document.getElementById('toggleArrow').textContent = completedVisible ? '▲' : '▼';
-}
+// ─── Render Quests ────────────────────────────────────────
+function makeItem(q){
+  const li=document.createElement('li');
+  li.className='quest-item'+(q.done?' done':'');
+  const text=q.loading
+    ?'<span class="spin">⚙</span> The scribes consult the ancient tomes of lore…'
+    :esc(q.phrasings[q.phrasingIdx]||q.phrasings[0]);
 
-function makeQuestItem(q) {
-  const li = document.createElement('li');
-  li.className = 'quest-item' + (q.completed ? ' completed' : '');
-  li.dataset.id = q.id;
-
-  li.innerHTML = `
-    <input type="checkbox" class="quest-check" ${q.completed ? 'checked' : ''} onchange="toggleQuest(${q.id})">
-    <div class="quest-content">
-      <div class="quest-original">${escHtml(q.original)}</div>
-      <div class="quest-transformed">${q.loading ? '<span class="loading-rune">⚙</span> The scribes consult the ancient tomes…' : escHtml(q.quest)}</div>
-      ${!q.loading ? `<div class="quest-meta">
-        <span class="quest-rank ${q.rankClass}">${q.rank}</span>
-        <span style="font-size:0.72rem;color:var(--ink-faded);font-family:'Cinzel',serif;opacity:0.7">+${q.xp} Glory</span>
-      </div>` : ''}
+  li.innerHTML=`
+    <input type="checkbox" class="q-check" ${q.done?'checked':''} onchange="toggleQuest(${q.id})">
+    <div>
+      <div class="q-original">${esc(q.original)}</div>
+      <div class="q-text">${text}</div>
+      ${!q.loading?`<div class="q-footer">
+        <span class="rank-badge ${q.rankCls}">${q.rank}</span>
+        <span class="xp-label">+${q.xp} glory</span>
+      </div>`:''}
     </div>
-    <button class="delete-btn" onclick="deleteQuest(${q.id})" title="Abandon quest">✕</button>
+    <div class="quest-actions">
+      ${!q.loading&&q.phrasings.length>1?`<button class="btn-action btn-reroll" onclick="reroll(${q.id})" title="Reroll quest wording">🎲</button>`:''}
+      <button class="btn-action btn-del" onclick="deleteQuest(${q.id})" title="Abandon quest" style="color:var(--ink3)">✕</button>
+    </div>
   `;
   return li;
 }
 
-function escHtml(s) {
-  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-}
+function renderQuests(){
+  const active=quests.filter(q=>!q.done);
+  const done=quests.filter(q=>q.done);
 
-function renderQuests() {
-  const active = quests.filter(q => !q.completed);
-  const done = quests.filter(q => q.completed);
-
-  const activeEl = document.getElementById('activeQuests');
-  activeEl.innerHTML = '';
-  if (active.length === 0) {
-    activeEl.innerHTML = '<li class="empty-state"><span class="empty-icon">📜</span>Thy scroll awaits its first decree, brave adventurer.</li>';
-  } else {
-    active.forEach(q => activeEl.appendChild(makeQuestItem(q)));
+  const al=document.getElementById('activeList');
+  al.innerHTML='';
+  if(active.length===0){
+    al.innerHTML=`<li class="empty-state"><span class="empty-icon">🗺️</span>Thy scroll remains bare, adventurer.<br><em>What deed shall be chronicled this day?</em></li>`;
+  }else{
+    active.forEach(q=>al.appendChild(makeItem(q)));
   }
 
-  const doneEl = document.getElementById('completedQuests');
-  doneEl.innerHTML = '';
-  done.forEach(q => doneEl.appendChild(makeQuestItem(q)));
+  const dl=document.getElementById('doneList');
+  dl.innerHTML='';
+  done.forEach(q=>dl.appendChild(makeItem(q)));
 
-  document.getElementById('completedSection').style.display = done.length > 0 ? 'block' : 'none';
-  document.getElementById('completedCount').textContent = done.length;
+  document.getElementById('doneSection').style.display=done.length>0?'block':'none';
+  document.getElementById('doneCount').textContent=done.length;
+  document.getElementById('doneArrow').textContent=doneVisible?'▼':'▶';
+  dl.style.display=doneVisible?'flex':'none';
+  if(doneVisible){dl.style.flexDirection='column';dl.style.gap='10px';}
 
-  document.getElementById('statActive').textContent = active.length;
-  document.getElementById('statDone').textContent = done.length;
-  const totalXP = done.reduce((sum, q) => sum + (q.xp || 0), 0);
-  document.getElementById('statXP').textContent = totalXP;
+  const todayDone=done.filter(q=>q.dateKey===todayKey());
+  document.getElementById('sActive').textContent=active.length;
+  document.getElementById('sDone').textContent=todayDone.length;
+  document.getElementById('sGlory').textContent=todayDone.reduce((s,q)=>s+q.xp,0);
 }
 
-document.getElementById('taskInput').addEventListener('keydown', e => {
-  if (e.key === 'Enter') addQuest();
+function toggleDone(){
+  doneVisible=!doneVisible;
+  const dl=document.getElementById('doneList');
+  dl.style.display=doneVisible?'flex':'none';
+  if(doneVisible){dl.style.flexDirection='column';dl.style.gap='10px';}
+  document.getElementById('doneArrow').textContent=doneVisible?'▼':'▶';
+}
+
+// ─── Stats ────────────────────────────────────────────────
+function buildDayCounts(){
+  const m={};
+  quests.filter(q=>q.done&&q.dateKey).forEach(q=>{m[q.dateKey]=(m[q.dateKey]||0)+1;});
+  return m;
+}
+function buildGloryCounts(){
+  const m={};
+  quests.filter(q=>q.done&&q.dateKey).forEach(q=>{m[q.dateKey]=(m[q.dateKey]||0)+(q.xp||0);});
+  return m;
+}
+
+function renderStats(){
+  const dc=buildDayCounts();
+  const gc=buildGloryCounts();
+  const tk=todayKey();
+
+  document.getElementById('todayNum').textContent=dc[tk]||0;
+  document.getElementById('todayGlory').textContent=`+${gc[tk]||0} Glory earned this day`;
+
+  const y=viewMonth.getFullYear(),m=viewMonth.getMonth();
+  document.getElementById('monthTitle').textContent=`${MONTH_NAMES[m]} ${y}`;
+
+  const grid=document.getElementById('calGrid');
+  grid.innerHTML='';
+  DAY_NAMES.forEach(d=>{const el=document.createElement('div');el.className='cal-day-lbl';el.textContent=d;grid.appendChild(el);});
+
+  const firstDay=new Date(y,m,1).getDay();
+  const daysInMonth=new Date(y,m+1,0).getDate();
+  const today=new Date();
+
+  for(let i=0;i<firstDay;i++){const el=document.createElement('div');el.className='cal-day empty';grid.appendChild(el);}
+  for(let d=1;d<=daysInMonth;d++){
+    const key=`${y}-${String(m+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+    const cnt=dc[key]||0,glory=gc[key]||0;
+    const isToday=today.getFullYear()===y&&today.getMonth()===m&&today.getDate()===d;
+    const el=document.createElement('div');
+    el.className='cal-day'+(isToday?' today':'')+(cnt>0?' has-q':'');
+    el.innerHTML=`
+      <span class="cal-dnum">${d}</span>
+      ${cnt>0?`<span class="cal-dot">${cnt>=3?'⚔️⚔️⚔️':cnt===2?'⚔️⚔️':'⚔️'}</span>`:''}
+      ${cnt>0?`<div class="cal-tip">${cnt} quest${cnt>1?'s':''} · +${glory} glory</div>`:''}
+    `;
+    grid.appendChild(el);
+  }
+
+  const allDays=Object.values(dc);
+  const allMonths={};
+  Object.entries(dc).forEach(([k,v])=>{const mk=k.slice(0,7);allMonths[mk]=(allMonths[mk]||0)+v;});
+  const total=allDays.reduce((s,v)=>s+v,0);
+  const bestDay=allDays.length?Math.max(...allDays):0;
+  const bestMonth=Object.values(allMonths).length?Math.max(...Object.values(allMonths)):0;
+
+  let streak=0;
+  const t2=new Date();
+  for(let i=0;i<365;i++){
+    const d2=new Date(t2);d2.setDate(d2.getDate()-i);
+    const k2=`${d2.getFullYear()}-${String(d2.getMonth()+1).padStart(2,'0')}-${String(d2.getDate()).padStart(2,'0')}`;
+    if(dc[k2]>0)streak++;else break;
+  }
+
+  document.getElementById('recTotal').textContent=total;
+  document.getElementById('recBestDay').textContent=bestDay;
+  document.getElementById('recBestMonth').textContent=bestMonth;
+  document.getElementById('recStreak').textContent=streak;
+}
+
+function changeMonth(dir){
+  viewMonth=new Date(viewMonth.getFullYear(),viewMonth.getMonth()+dir,1);
+  renderStats();
+}
+
+// ─── Tabs ─────────────────────────────────────────────────
+document.getElementById('tabs').addEventListener('click',e=>{
+  const btn=e.target.closest('.tab-btn');
+  if(!btn)return;
+  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+  document.querySelectorAll('.pane').forEach(p=>p.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('pane-'+btn.dataset.pane).classList.add('active');
+  if(btn.dataset.pane==='stats')renderStats();
 });
 
-renderQuests();
+document.getElementById('taskInput').addEventListener('keydown',e=>{if(e.key==='Enter')addQuest();});
+
+function esc(s=''){return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+
+// ─── Init ─────────────────────────────────────────────────
+load();spawnParticles();renderQuests();renderStats();
 </script>
 </body>
 </html>
