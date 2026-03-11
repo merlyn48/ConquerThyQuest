@@ -915,246 +915,250 @@ document.getElementById('taskInput').addEventListener('keydown',e=>{if(e.key==='
 function esc(s=''){return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
 
 // ─── Audio Engine ─────────────────────────────────────────
-let audioCtx=null, masterGain=null, isPlaying=false;
-let allNodes=[], currentMood='tavern';
+let AC = null, masterGain = null, isPlaying = false;
+let stopTimers = [], stopOscillators = [], stopSources = [];
+let currentMood = 'tavern';
 
-const MOODS={
-  tavern:{label:'Tavern Hearth',status:'The bards play by the fire…'},
-  dungeon:{label:'Dark Dungeon',status:'Echoes of shadow & stone…'},
-  forest:{label:'Enchanted Forest',status:'The woodland spirits sing…'}
+const MOODS = {
+  tavern:  { label:'Tavern Hearth',      status:'The bards play by the hearth…' },
+  dungeon: { label:'Dark Dungeon',        status:'Echoes of shadow and stone…'   },
+  forest:  { label:'Enchanted Forest',   status:'The woodland spirits sing…'    }
 };
 
-function initAudio(){
-  if(audioCtx) return;
-  audioCtx = new (window.AudioContext||window.webkitAudioContext)();
-  masterGain = audioCtx.createGain();
-  masterGain.gain.value = 0.55;
-  masterGain.connect(audioCtx.destination);
-}
-
-function stopAll(){
-  allNodes.forEach(n=>{try{n.stop();n.disconnect();}catch(e){}});
-  allNodes=[];
-}
-
-// ── Helpers ──
-function makeGain(val){const g=audioCtx.createGain();g.gain.value=val;g.connect(masterGain);return g;}
-
-function sine(freq,gainVal,detune=0){
-  const o=audioCtx.createOscillator();
-  const g=makeGain(gainVal);
-  o.type='sine';o.frequency.value=freq;
-  if(detune)o.detune.value=detune;
-  o.connect(g);o.start();
-  allNodes.push(o);return o;
-}
-
-function noise(gainVal,lowpass=800){
-  const buf=audioCtx.createBuffer(1,audioCtx.sampleRate*2,audioCtx.sampleRate);
-  const d=buf.getChannelData(0);
-  for(let i=0;i<d.length;i++)d[i]=(Math.random()*2-1);
-  const src=audioCtx.createBufferSource();
-  src.buffer=buf;src.loop=true;
-  const filt=audioCtx.createBiquadFilter();
-  filt.type='lowpass';filt.frequency.value=lowpass;filt.Q.value=0.5;
-  const g=makeGain(gainVal);
-  src.connect(filt);filt.connect(g);
-  src.start();allNodes.push(src);return src;
-}
-
-function slowLFO(target,param,min,max,periodSec){
-  // Slow sine LFO via setValueCurveAtTime loop
-  const steps=256;
-  const curve=new Float32Array(steps);
-  for(let i=0;i<steps;i++) curve[i]=min+(max-min)*(0.5+0.5*Math.sin(i/steps*Math.PI*2));
-  function schedule(){
-    const start=audioCtx.currentTime+0.05;
-    try{param.setValueCurveAtTime(curve,start,periodSec);}catch(e){}
+function getAC() {
+  if (!AC) {
+    AC = new (window.AudioContext || window.webkitAudioContext)();
+    masterGain = AC.createGain();
+    masterGain.gain.value = parseFloat(document.getElementById('volSlider').value) / 100;
+    masterGain.connect(AC.destination);
   }
-  schedule();
-  const id=setInterval(schedule,periodSec*1000);
-  allNodes.push({stop:()=>clearInterval(id),disconnect:()=>{}});
+  return AC;
 }
 
-// pluck-like tone: short attack, slow decay
-function pluck(freq,gainVal,when){
-  const o=audioCtx.createOscillator();
-  const g=audioCtx.createGain();
-  o.type='triangle';o.frequency.value=freq;
-  g.gain.setValueAtTime(0,when);
-  g.gain.linearRampToValueAtTime(gainVal,when+0.04);
-  g.gain.exponentialRampToValueAtTime(0.001,when+3.5);
-  g.connect(masterGain);o.connect(g);
-  o.start(when);o.stop(when+4);
-  allNodes.push(o);
+function stopAll() {
+  stopTimers.forEach(id => clearTimeout(id));
+  stopTimers = [];
+  stopOscillators.forEach(o => { try { o.stop(); } catch(e){} });
+  stopOscillators = [];
+  stopSources.forEach(s => { try { s.stop(); } catch(e){} });
+  stopSources = [];
 }
 
-function scheduleHarp(freqs,interval,gainVal){
-  let idx=0;
-  function next(){
-    const t=audioCtx.currentTime;
-    pluck(freqs[idx%freqs.length],gainVal,t);
+// ── Low-level builders ──────────────────────────────────
+
+function mkGain(val, dest) {
+  const g = AC.createGain();
+  g.gain.value = val;
+  g.connect(dest || masterGain);
+  return g;
+}
+
+// Continuous oscillator connected to masterGain
+function mkOsc(type, freq, gainVal, detuneVal) {
+  const o = AC.createOscillator();
+  const g = mkGain(gainVal);
+  o.type = type;
+  o.frequency.value = freq;
+  if (detuneVal) o.detune.value = detuneVal;
+  o.connect(g);
+  o.start();
+  stopOscillators.push(o);
+  return { osc: o, gain: g };
+}
+
+// LFO that gently modulates a gain node's value using a JS interval
+function mkLFO(gainNode, lo, hi, periodMs) {
+  const start = Date.now();
+  const id = setInterval(() => {
+    const t = (Date.now() - start) / periodMs;
+    const v = lo + (hi - lo) * (0.5 + 0.5 * Math.sin(t * Math.PI * 2));
+    gainNode.gain.setTargetAtTime(v, AC.currentTime, 0.3);
+  }, 80);
+  stopTimers.push(id);
+}
+
+// White noise buffer source through a filter
+function mkNoise(filterType, filterFreq, filterQ, gainVal) {
+  const bufLen = AC.sampleRate * 3;
+  const buf = AC.createBuffer(1, bufLen, AC.sampleRate);
+  const data = buf.getChannelData(0);
+  for (let i = 0; i < bufLen; i++) data[i] = Math.random() * 2 - 1;
+
+  const src = AC.createBufferSource();
+  src.buffer = buf;
+  src.loop = true;
+
+  const filt = AC.createBiquadFilter();
+  filt.type = filterType;
+  filt.frequency.value = filterFreq;
+  filt.Q.value = filterQ;
+
+  const g = mkGain(gainVal);
+  src.connect(filt);
+  filt.connect(g);
+  src.start();
+  stopSources.push(src);
+  return { src, filt, gain: g };
+}
+
+// Schedule a single pluck note (triangle osc with fast attack, exponential decay)
+function pluck(freq, gainVal, when) {
+  const o = AC.createOscillator();
+  const g = AC.createGain();
+  o.type = 'triangle';
+  o.frequency.value = freq;
+  g.gain.setValueAtTime(0.001, when);
+  g.gain.linearRampToValueAtTime(gainVal, when + 0.03);
+  g.gain.exponentialRampToValueAtTime(0.001, when + 3.0);
+  o.connect(g);
+  g.connect(masterGain);
+  o.start(when);
+  o.stop(when + 3.5);
+  // don't push to stopOscillators — they auto-stop
+}
+
+// Recurring melody scheduler using setTimeout
+function schedMelody(freqs, intervalSec, gainVal, offsetSec) {
+  let idx = 0;
+  function tick() {
+    if (!isPlaying) return;
+    pluck(freqs[idx % freqs.length], gainVal, AC.currentTime + 0.01);
     idx++;
-    // slight random timing variation
-    const jitter=interval+(Math.random()-0.5)*interval*0.4;
-    const id=setTimeout(next,jitter*1000);
-    allNodes.push({stop:()=>clearTimeout(id),disconnect:()=>{}});
+    const jitter = intervalSec * 1000 * (0.8 + Math.random() * 0.4);
+    const id = setTimeout(tick, jitter);
+    stopTimers.push(id);
   }
-  const startId=setTimeout(next,Math.random()*interval*1000);
-  allNodes.push({stop:()=>clearTimeout(startId),disconnect:()=>{}});
+  const startId = setTimeout(tick, (offsetSec || 0) * 1000);
+  stopTimers.push(startId);
 }
 
-// ── Moods ──
-function buildTavern(){
-  // Deep warm drone (root + fifth)
-  const drone1=sine(55,0.08); // low A
-  const drone2=sine(82.4,0.05,5); // E, slightly detuned for warmth
-  const drone3=sine(110,0.04,-3);
-  slowLFO(null,drone1.frequency,53,57,14);
-  slowLFO(null,drone2.frequency,80,85,17);
+// ── Soundscapes ─────────────────────────────────────────
 
-  // Crackling fire — filtered noise with slow amplitude flutter
-  const fire=noise(0.045,350);
-  const fireGain=audioCtx.createGain();
-  slowLFO(null,fireGain.gain,0.025,0.07,6);
-  // wire fire through extra gain for flutter
-  noise(0.018,200); // sub-crackle layer
+function buildTavern() {
+  // Warm low drones — A major / pentatonic
+  mkOsc('sine', 55,   0.07,   0);   // A1
+  mkOsc('sine', 82.4, 0.045,  6);   // E2, slightly sharp
+  mkOsc('sine', 110,  0.035, -5);   // A2, slightly flat — beating warmth
 
-  // Warm mid hum (tavern chatter feeling)
-  sine(220,0.025,8);
-  sine(330,0.015,−4);
+  // Crackling fire: two bandpass noise layers at different freqs
+  const fire1 = mkNoise('lowpass',  350, 0.8, 0.055);
+  const fire2 = mkNoise('bandpass', 180, 0.6, 0.03);
+  mkLFO(fire1.gain, 0.03, 0.075, 5200);
+  mkLFO(fire2.gain, 0.015, 0.045, 7800);
 
-  // Harp/lute arpeggios — pentatonic in A
-  const harpFreqs=[220,246.9,277.2,329.6,370,440,493.9,554.4];
-  scheduleHarp(harpFreqs,2.4,0.07);
-  scheduleHarp([harpFreqs[0],harpFreqs[2],harpFreqs[4],harpFreqs[6]],5.1,0.05);
+  // Soft crowd hum
+  mkOsc('sine', 220, 0.018, 9);
+  mkOsc('sine', 293.7, 0.010, -7);
 
-  // Occasional bell ping
-  scheduleHarp([880,1108,1318],11,0.04);
+  // Lute / harp arpeggios — A pentatonic
+  schedMelody([220, 277.2, 329.6, 440, 554.4, 659.3], 2.2, 0.065, 0.5);
+  schedMelody([440, 554.4, 659.3, 880],                 4.8, 0.050, 2.1);
+  // Occasional high bell ping
+  schedMelody([880, 1108.7, 1318.5],                    9.5, 0.038, 4.0);
 }
 
-function buildDungeon(){
-  // Ominous low drones
-  sine(36.7,0.1,0);  // low D
-  sine(55,0.07,7);
-  sine(73.4,0.05,-5);
+function buildDungeon() {
+  // Ominous low drones — D minor cluster
+  mkOsc('sine', 36.7,  0.10,  0);
+  mkOsc('sine', 55.0,  0.07,  8);
+  mkOsc('sine', 73.4,  0.05, -6);
+  mkOsc('sine', 74.5,  0.03, 14);  // beating dissonance against 73.4
 
-  // Slow deep pulse
-  const pulse=sine(36.7,0.06);
-  slowLFO(null,pulse.frequency,35,38.5,20);
+  // Slow pulse on the root
+  const pulseNode = mkOsc('sine', 36.7, 0.06, 0);
+  mkLFO(pulseNode.gain, 0.01, 0.09, 18000);
 
-  // Cave wind — highpass noise
-  const wind=audioCtx.createBufferSource();
-  const windBuf=audioCtx.createBuffer(1,audioCtx.sampleRate*3,audioCtx.sampleRate);
-  const wd=windBuf.getChannelData(0);
-  for(let i=0;i<wd.length;i++)wd[i]=(Math.random()*2-1);
-  wind.buffer=windBuf;wind.loop=true;
-  const hp=audioCtx.createBiquadFilter();
-  hp.type='bandpass';hp.frequency.value=600;hp.Q.value=0.3;
-  const wg=makeGain(0.04);
-  wind.connect(hp);hp.connect(wg);wind.start();
-  allNodes.push(wind);
-  slowLFO(null,wg.gain,0.015,0.055,9);
+  // Cave wind — bandpass noise
+  const wind = mkNoise('bandpass', 500, 0.4, 0.045);
+  mkLFO(wind.gain, 0.015, 0.06, 9000);
 
-  // Dripping water — sparse plucks
-  scheduleHarp([293.7,220,174.6],7,0.06);
-  scheduleHarp([146.8,110],13,0.08);
+  // Sub rumble
+  mkNoise('lowpass', 80, 0.5, 0.04);
 
-  // Deep resonant bell hits
-  scheduleHarp([73.4,55,92.5],15,0.09);
-
-  // Subtle dissonance
-  sine(74.5,0.03,12); // slight beating against root
+  // Dripping water — sparse low plucks
+  schedMelody([293.7, 220, 174.6, 146.8], 6.5, 0.065, 1.0);
+  schedMelody([110, 82.4],                 12,  0.08,  5.0);
+  // Deep bell tolls
+  schedMelody([73.4, 55, 92.5],            16,  0.09,  8.0);
 }
 
-function buildForest(){
-  // Airy open drones — Dorian mode feel
-  sine(146.8,0.05,0); // D
-  sine(220,0.04,6);   // A
-  sine(293.7,0.03,-4);// D octave
+function buildForest() {
+  // Open airy drones — D Dorian
+  mkOsc('sine', 146.8, 0.05,  0);
+  mkOsc('sine', 220,   0.04,  7);
+  mkOsc('sine', 293.7, 0.03, -5);
 
-  // Wind through leaves — bandpass noise layers
-  [400,700,1100].forEach((freq,i)=>{
-    const src=audioCtx.createBufferSource();
-    const buf=audioCtx.createBuffer(1,audioCtx.sampleRate*4,audioCtx.sampleRate);
-    const data=buf.getChannelData(0);
-    for(let j=0;j<data.length;j++)data[j]=(Math.random()*2-1);
-    src.buffer=buf;src.loop=true;
-    const bp=audioCtx.createBiquadFilter();
-    bp.type='bandpass';bp.frequency.value=freq;bp.Q.value=1.2;
-    const g=makeGain(0.025);
-    src.connect(bp);bp.connect(g);src.start();
-    allNodes.push(src);
-    slowLFO(null,g.gain,0.01,0.04,8+i*3);
-  });
+  // Wind layers — three bandpass noise bands
+  const w1 = mkNoise('bandpass', 400,  1.0, 0.03);
+  const w2 = mkNoise('bandpass', 750,  0.8, 0.025);
+  const w3 = mkNoise('bandpass', 1200, 0.6, 0.018);
+  mkLFO(w1.gain, 0.01, 0.05, 8000);
+  mkLFO(w2.gain, 0.008,0.04, 11000);
+  mkLFO(w3.gain, 0.005,0.03, 14000);
 
-  // Bird-like flute tones — pentatonic D
-  const birdFreqs=[293.7,349.2,392,440,523.3,587.3,659.3,784];
-  scheduleHarp(birdFreqs,1.8,0.06);
-  scheduleHarp([birdFreqs[0],birdFreqs[2],birdFreqs[4]],4.2,0.05);
-  scheduleHarp([birdFreqs[6],birdFreqs[7]],7.5,0.04);
+  // Soft brook undercurrent
+  mkNoise('lowpass', 110, 0.5, 0.035);
 
-  // Gentle shimmer bells
-  scheduleHarp([1174.7,1318,1046.5],9,0.035);
-
-  // Soft brook — very low filtered noise
-  noise(0.03,120);
+  // Bird flute melody — D pentatonic
+  schedMelody([293.7, 349.2, 392, 440, 523.3, 587.3], 1.9, 0.058, 0.3);
+  schedMelody([440, 523.3, 659.3],                      4.3, 0.048, 1.8);
+  schedMelody([293.7, 392, 523.3],                      7.0, 0.042, 3.5);
+  // High shimmer bells
+  schedMelody([1174.7, 1318.5, 1046.5],                 8.5, 0.032, 5.0);
 }
 
-function startMood(mood){
+// ── Controls ────────────────────────────────────────────
+
+function startMood(mood) {
   stopAll();
-  currentMood=mood;
-  if(mood==='tavern') buildTavern();
-  else if(mood==='dungeon') buildDungeon();
+  currentMood = mood;
+  if (mood === 'tavern')  buildTavern();
+  else if (mood === 'dungeon') buildDungeon();
   else buildForest();
-  document.getElementById('audioTrack').textContent=MOODS[mood].label;
-  document.getElementById('audioStatus').textContent=MOODS[mood].status;
-  // update mood button highlights
-  ['tavern','dungeon','forest'].forEach(m=>{
-    document.getElementById('mood'+m.charAt(0).toUpperCase()+m.slice(1))
-      .classList.toggle('active',m===mood);
+
+  document.getElementById('audioTrack').textContent  = MOODS[mood].label;
+  document.getElementById('audioStatus').textContent = MOODS[mood].status;
+  ['Tavern','Dungeon','Forest'].forEach(m => {
+    document.getElementById('mood'+m).classList.toggle('active', m.toLowerCase() === mood);
   });
 }
 
-function toggleAudio(){
-  initAudio();
-  if(audioCtx.state==='suspended') audioCtx.resume();
+function toggleAudio() {
+  const ac = getAC();
+  // Browsers require resume() after a user gesture
+  if (ac.state === 'suspended') ac.resume();
 
-  if(!isPlaying){
-    isPlaying=true;
+  if (!isPlaying) {
+    isPlaying = true;
     startMood(currentMood);
-    document.getElementById('btnAudio').textContent='🔇';
-    document.getElementById('audioStatus').textContent=MOODS[currentMood].status;
-    document.querySelectorAll('.viz-bar').forEach(b=>b.classList.add('playing'));
-  }else{
-    isPlaying=false;
+    document.getElementById('btnAudio').textContent = '🔇';
+    document.querySelectorAll('.viz-bar').forEach(b => b.classList.add('playing'));
+  } else {
+    isPlaying = false;
     stopAll();
-    document.getElementById('btnAudio').textContent='🎵';
-    document.getElementById('audioStatus').textContent='Click to awaken the bards';
-    document.querySelectorAll('.viz-bar').forEach(b=>b.classList.remove('playing'));
+    document.getElementById('btnAudio').textContent  = '🎵';
+    document.getElementById('audioStatus').textContent = 'Click to awaken the bards';
+    document.querySelectorAll('.viz-bar').forEach(b => b.classList.remove('playing'));
   }
 }
 
-function setMood(mood){
-  currentMood=mood;
-  if(isPlaying){
-    initAudio();
+function setMood(mood) {
+  currentMood = mood;
+  if (isPlaying) {
+    getAC();
     startMood(mood);
-  }else{
-    // just update label
-    document.getElementById('audioTrack').textContent=MOODS[mood].label;
-    ['tavern','dungeon','forest'].forEach(m=>{
-      document.getElementById('mood'+m.charAt(0).toUpperCase()+m.slice(1))
-        .classList.toggle('active',m===mood);
+  } else {
+    document.getElementById('audioTrack').textContent = MOODS[mood].label;
+    ['Tavern','Dungeon','Forest'].forEach(m => {
+      document.getElementById('mood'+m).classList.toggle('active', m.toLowerCase() === mood);
     });
   }
 }
 
-function setVolume(val){
-  if(masterGain) masterGain.gain.value=val/100;
-  // update slider gradient
-  const pct=val+'%';
-  document.getElementById('volSlider').style.background=
+function setVolume(val) {
+  if (masterGain) masterGain.gain.setTargetAtTime(val / 100, AC.currentTime, 0.05);
+  const pct = val + '%';
+  document.getElementById('volSlider').style.background =
     `linear-gradient(to right,var(--gold) 0%,var(--gold) ${pct},rgba(160,100,30,0.3) ${pct})`;
 }
 
