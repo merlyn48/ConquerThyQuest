@@ -362,10 +362,90 @@ h1{
   100%{transform:translateY(60vh) rotate(720deg) scale(1);opacity:0;}
 }
 
+/* ── Audio Player ── */
+.audio-bar{
+  position:fixed;bottom:20px;right:20px;z-index:100;
+  display:flex;align-items:center;gap:10px;
+  background:linear-gradient(135deg,rgba(30,14,5,0.95),rgba(50,25,8,0.95));
+  border:1.5px solid var(--border);
+  border-radius:40px;
+  padding:8px 16px 8px 10px;
+  box-shadow:0 8px 32px rgba(0,0,0,0.6),0 0 0 1px rgba(200,146,30,0.15),inset 0 1px 0 rgba(255,255,255,0.05);
+  backdrop-filter:blur(12px);
+  transition:all 0.3s;
+}
+.audio-bar:hover{
+  border-color:var(--gold);
+  box-shadow:0 8px 32px rgba(0,0,0,0.7),0 0 16px rgba(200,146,30,0.2);
+}
+.btn-audio{
+  width:36px;height:36px;border-radius:50%;
+  background:linear-gradient(135deg,#8b1a1a,#5c0d0d);
+  border:1.5px solid #7a1515;
+  color:var(--gold3);font-size:1rem;
+  cursor:pointer;transition:all 0.2s;
+  display:flex;align-items:center;justify-content:center;
+  box-shadow:0 2px 8px rgba(0,0,0,0.4),inset 0 1px 0 rgba(255,255,255,0.1);
+  flex-shrink:0;
+}
+.btn-audio:hover{background:linear-gradient(135deg,#a52020,#781010);transform:scale(1.08);}
+.audio-info{display:flex;flex-direction:column;gap:1px;}
+.audio-track{
+  font-family:'Cinzel',serif;font-size:0.6rem;font-weight:700;
+  letter-spacing:0.1em;text-transform:uppercase;
+  color:var(--gold2);white-space:nowrap;
+}
+.audio-status{
+  font-family:'IM Fell English',serif;font-style:italic;
+  font-size:0.62rem;color:var(--ink3);opacity:0.7;
+}
+.audio-viz{
+  display:flex;align-items:center;gap:2px;height:18px;
+}
+.viz-bar{
+  width:3px;border-radius:2px;
+  background:var(--gold);opacity:0.6;
+  transform-origin:bottom;
+}
+.viz-bar.playing{animation:viz-dance linear infinite;}
+@keyframes viz-dance{
+  0%,100%{transform:scaleY(0.2);}
+  50%{transform:scaleY(1);}
+}
+.volume-wrap{display:flex;align-items:center;gap:5px;}
+.vol-icon{font-size:0.75rem;color:var(--ink3);opacity:0.6;}
+input[type=range].vol-slider{
+  -webkit-appearance:none;appearance:none;
+  width:60px;height:3px;
+  background:linear-gradient(to right,var(--gold) 0%,var(--gold) 70%,rgba(160,100,30,0.3) 70%);
+  border-radius:2px;cursor:pointer;outline:none;
+}
+input[type=range].vol-slider::-webkit-slider-thumb{
+  -webkit-appearance:none;width:11px;height:11px;
+  border-radius:50%;background:var(--gold2);
+  box-shadow:0 0 4px rgba(200,146,30,0.5);
+  cursor:pointer;transition:transform 0.15s;
+}
+input[type=range].vol-slider::-webkit-slider-thumb:hover{transform:scale(1.3);}
+
+/* Mood selector */
+.mood-btn{
+  background:none;border:1px solid rgba(160,100,30,0.3);
+  border-radius:20px;padding:2px 8px;
+  font-family:'Cinzel',serif;font-size:0.55rem;font-weight:600;
+  letter-spacing:0.08em;text-transform:uppercase;
+  color:var(--ink3);cursor:pointer;transition:all 0.2s;white-space:nowrap;
+}
+.mood-btn:hover,.mood-btn.active{
+  background:rgba(200,146,30,0.15);border-color:var(--gold);color:var(--gold2);
+}
+
 @media(max-width:580px){
   .scroll{padding:40px 24px 36px;}
   h1{font-size:1.4rem;}
   .records-grid{grid-template-columns:1fr;}
+  .audio-bar{bottom:12px;right:12px;padding:6px 12px 6px 8px;}
+  .volume-wrap,.mood-btn{display:none;}
 }
 </style>
 </head>
@@ -486,6 +566,29 @@ h1{
     </div>
   </div>
 
+</div>
+
+<!-- Audio Player Bar -->
+<div class="audio-bar" id="audioBar">
+  <button class="btn-audio" id="btnAudio" onclick="toggleAudio()" title="Toggle ambient music">🎵</button>
+  <div class="audio-info">
+    <div class="audio-track" id="audioTrack">Tavern Hearth</div>
+    <div class="audio-status" id="audioStatus">Click to awaken the bards</div>
+  </div>
+  <div class="audio-viz" id="audioViz">
+    <div class="viz-bar" style="height:14px;animation-duration:0.6s;animation-delay:0s;"></div>
+    <div class="viz-bar" style="height:10px;animation-duration:0.8s;animation-delay:0.15s;"></div>
+    <div class="viz-bar" style="height:16px;animation-duration:0.5s;animation-delay:0.3s;"></div>
+    <div class="viz-bar" style="height:8px;animation-duration:0.9s;animation-delay:0.1s;"></div>
+    <div class="viz-bar" style="height:12px;animation-duration:0.7s;animation-delay:0.25s;"></div>
+  </div>
+  <div class="volume-wrap">
+    <span class="vol-icon">🔈</span>
+    <input type="range" class="vol-slider" id="volSlider" min="0" max="100" value="55" oninput="setVolume(this.value)">
+  </div>
+  <button class="mood-btn active" id="moodTavern" onclick="setMood('tavern')">Tavern</button>
+  <button class="mood-btn" id="moodDungeon" onclick="setMood('dungeon')">Dungeon</button>
+  <button class="mood-btn" id="moodForest" onclick="setMood('forest')">Forest</button>
 </div>
 
 <script>
@@ -810,6 +913,250 @@ document.getElementById('tabs').addEventListener('click',e=>{
 document.getElementById('taskInput').addEventListener('keydown',e=>{if(e.key==='Enter')addQuest();});
 
 function esc(s=''){return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+
+// ─── Audio Engine ─────────────────────────────────────────
+let audioCtx=null, masterGain=null, isPlaying=false;
+let allNodes=[], currentMood='tavern';
+
+const MOODS={
+  tavern:{label:'Tavern Hearth',status:'The bards play by the fire…'},
+  dungeon:{label:'Dark Dungeon',status:'Echoes of shadow & stone…'},
+  forest:{label:'Enchanted Forest',status:'The woodland spirits sing…'}
+};
+
+function initAudio(){
+  if(audioCtx) return;
+  audioCtx = new (window.AudioContext||window.webkitAudioContext)();
+  masterGain = audioCtx.createGain();
+  masterGain.gain.value = 0.55;
+  masterGain.connect(audioCtx.destination);
+}
+
+function stopAll(){
+  allNodes.forEach(n=>{try{n.stop();n.disconnect();}catch(e){}});
+  allNodes=[];
+}
+
+// ── Helpers ──
+function makeGain(val){const g=audioCtx.createGain();g.gain.value=val;g.connect(masterGain);return g;}
+
+function sine(freq,gainVal,detune=0){
+  const o=audioCtx.createOscillator();
+  const g=makeGain(gainVal);
+  o.type='sine';o.frequency.value=freq;
+  if(detune)o.detune.value=detune;
+  o.connect(g);o.start();
+  allNodes.push(o);return o;
+}
+
+function noise(gainVal,lowpass=800){
+  const buf=audioCtx.createBuffer(1,audioCtx.sampleRate*2,audioCtx.sampleRate);
+  const d=buf.getChannelData(0);
+  for(let i=0;i<d.length;i++)d[i]=(Math.random()*2-1);
+  const src=audioCtx.createBufferSource();
+  src.buffer=buf;src.loop=true;
+  const filt=audioCtx.createBiquadFilter();
+  filt.type='lowpass';filt.frequency.value=lowpass;filt.Q.value=0.5;
+  const g=makeGain(gainVal);
+  src.connect(filt);filt.connect(g);
+  src.start();allNodes.push(src);return src;
+}
+
+function slowLFO(target,param,min,max,periodSec){
+  // Slow sine LFO via setValueCurveAtTime loop
+  const steps=256;
+  const curve=new Float32Array(steps);
+  for(let i=0;i<steps;i++) curve[i]=min+(max-min)*(0.5+0.5*Math.sin(i/steps*Math.PI*2));
+  function schedule(){
+    const start=audioCtx.currentTime+0.05;
+    try{param.setValueCurveAtTime(curve,start,periodSec);}catch(e){}
+  }
+  schedule();
+  const id=setInterval(schedule,periodSec*1000);
+  allNodes.push({stop:()=>clearInterval(id),disconnect:()=>{}});
+}
+
+// pluck-like tone: short attack, slow decay
+function pluck(freq,gainVal,when){
+  const o=audioCtx.createOscillator();
+  const g=audioCtx.createGain();
+  o.type='triangle';o.frequency.value=freq;
+  g.gain.setValueAtTime(0,when);
+  g.gain.linearRampToValueAtTime(gainVal,when+0.04);
+  g.gain.exponentialRampToValueAtTime(0.001,when+3.5);
+  g.connect(masterGain);o.connect(g);
+  o.start(when);o.stop(when+4);
+  allNodes.push(o);
+}
+
+function scheduleHarp(freqs,interval,gainVal){
+  let idx=0;
+  function next(){
+    const t=audioCtx.currentTime;
+    pluck(freqs[idx%freqs.length],gainVal,t);
+    idx++;
+    // slight random timing variation
+    const jitter=interval+(Math.random()-0.5)*interval*0.4;
+    const id=setTimeout(next,jitter*1000);
+    allNodes.push({stop:()=>clearTimeout(id),disconnect:()=>{}});
+  }
+  const startId=setTimeout(next,Math.random()*interval*1000);
+  allNodes.push({stop:()=>clearTimeout(startId),disconnect:()=>{}});
+}
+
+// ── Moods ──
+function buildTavern(){
+  // Deep warm drone (root + fifth)
+  const drone1=sine(55,0.08); // low A
+  const drone2=sine(82.4,0.05,5); // E, slightly detuned for warmth
+  const drone3=sine(110,0.04,-3);
+  slowLFO(null,drone1.frequency,53,57,14);
+  slowLFO(null,drone2.frequency,80,85,17);
+
+  // Crackling fire — filtered noise with slow amplitude flutter
+  const fire=noise(0.045,350);
+  const fireGain=audioCtx.createGain();
+  slowLFO(null,fireGain.gain,0.025,0.07,6);
+  // wire fire through extra gain for flutter
+  noise(0.018,200); // sub-crackle layer
+
+  // Warm mid hum (tavern chatter feeling)
+  sine(220,0.025,8);
+  sine(330,0.015,−4);
+
+  // Harp/lute arpeggios — pentatonic in A
+  const harpFreqs=[220,246.9,277.2,329.6,370,440,493.9,554.4];
+  scheduleHarp(harpFreqs,2.4,0.07);
+  scheduleHarp([harpFreqs[0],harpFreqs[2],harpFreqs[4],harpFreqs[6]],5.1,0.05);
+
+  // Occasional bell ping
+  scheduleHarp([880,1108,1318],11,0.04);
+}
+
+function buildDungeon(){
+  // Ominous low drones
+  sine(36.7,0.1,0);  // low D
+  sine(55,0.07,7);
+  sine(73.4,0.05,-5);
+
+  // Slow deep pulse
+  const pulse=sine(36.7,0.06);
+  slowLFO(null,pulse.frequency,35,38.5,20);
+
+  // Cave wind — highpass noise
+  const wind=audioCtx.createBufferSource();
+  const windBuf=audioCtx.createBuffer(1,audioCtx.sampleRate*3,audioCtx.sampleRate);
+  const wd=windBuf.getChannelData(0);
+  for(let i=0;i<wd.length;i++)wd[i]=(Math.random()*2-1);
+  wind.buffer=windBuf;wind.loop=true;
+  const hp=audioCtx.createBiquadFilter();
+  hp.type='bandpass';hp.frequency.value=600;hp.Q.value=0.3;
+  const wg=makeGain(0.04);
+  wind.connect(hp);hp.connect(wg);wind.start();
+  allNodes.push(wind);
+  slowLFO(null,wg.gain,0.015,0.055,9);
+
+  // Dripping water — sparse plucks
+  scheduleHarp([293.7,220,174.6],7,0.06);
+  scheduleHarp([146.8,110],13,0.08);
+
+  // Deep resonant bell hits
+  scheduleHarp([73.4,55,92.5],15,0.09);
+
+  // Subtle dissonance
+  sine(74.5,0.03,12); // slight beating against root
+}
+
+function buildForest(){
+  // Airy open drones — Dorian mode feel
+  sine(146.8,0.05,0); // D
+  sine(220,0.04,6);   // A
+  sine(293.7,0.03,-4);// D octave
+
+  // Wind through leaves — bandpass noise layers
+  [400,700,1100].forEach((freq,i)=>{
+    const src=audioCtx.createBufferSource();
+    const buf=audioCtx.createBuffer(1,audioCtx.sampleRate*4,audioCtx.sampleRate);
+    const data=buf.getChannelData(0);
+    for(let j=0;j<data.length;j++)data[j]=(Math.random()*2-1);
+    src.buffer=buf;src.loop=true;
+    const bp=audioCtx.createBiquadFilter();
+    bp.type='bandpass';bp.frequency.value=freq;bp.Q.value=1.2;
+    const g=makeGain(0.025);
+    src.connect(bp);bp.connect(g);src.start();
+    allNodes.push(src);
+    slowLFO(null,g.gain,0.01,0.04,8+i*3);
+  });
+
+  // Bird-like flute tones — pentatonic D
+  const birdFreqs=[293.7,349.2,392,440,523.3,587.3,659.3,784];
+  scheduleHarp(birdFreqs,1.8,0.06);
+  scheduleHarp([birdFreqs[0],birdFreqs[2],birdFreqs[4]],4.2,0.05);
+  scheduleHarp([birdFreqs[6],birdFreqs[7]],7.5,0.04);
+
+  // Gentle shimmer bells
+  scheduleHarp([1174.7,1318,1046.5],9,0.035);
+
+  // Soft brook — very low filtered noise
+  noise(0.03,120);
+}
+
+function startMood(mood){
+  stopAll();
+  currentMood=mood;
+  if(mood==='tavern') buildTavern();
+  else if(mood==='dungeon') buildDungeon();
+  else buildForest();
+  document.getElementById('audioTrack').textContent=MOODS[mood].label;
+  document.getElementById('audioStatus').textContent=MOODS[mood].status;
+  // update mood button highlights
+  ['tavern','dungeon','forest'].forEach(m=>{
+    document.getElementById('mood'+m.charAt(0).toUpperCase()+m.slice(1))
+      .classList.toggle('active',m===mood);
+  });
+}
+
+function toggleAudio(){
+  initAudio();
+  if(audioCtx.state==='suspended') audioCtx.resume();
+
+  if(!isPlaying){
+    isPlaying=true;
+    startMood(currentMood);
+    document.getElementById('btnAudio').textContent='🔇';
+    document.getElementById('audioStatus').textContent=MOODS[currentMood].status;
+    document.querySelectorAll('.viz-bar').forEach(b=>b.classList.add('playing'));
+  }else{
+    isPlaying=false;
+    stopAll();
+    document.getElementById('btnAudio').textContent='🎵';
+    document.getElementById('audioStatus').textContent='Click to awaken the bards';
+    document.querySelectorAll('.viz-bar').forEach(b=>b.classList.remove('playing'));
+  }
+}
+
+function setMood(mood){
+  currentMood=mood;
+  if(isPlaying){
+    initAudio();
+    startMood(mood);
+  }else{
+    // just update label
+    document.getElementById('audioTrack').textContent=MOODS[mood].label;
+    ['tavern','dungeon','forest'].forEach(m=>{
+      document.getElementById('mood'+m.charAt(0).toUpperCase()+m.slice(1))
+        .classList.toggle('active',m===mood);
+    });
+  }
+}
+
+function setVolume(val){
+  if(masterGain) masterGain.gain.value=val/100;
+  // update slider gradient
+  const pct=val+'%';
+  document.getElementById('volSlider').style.background=
+    `linear-gradient(to right,var(--gold) 0%,var(--gold) ${pct},rgba(160,100,30,0.3) ${pct})`;
+}
 
 // ─── Init ─────────────────────────────────────────────────
 load();spawnParticles();renderQuests();renderStats();
